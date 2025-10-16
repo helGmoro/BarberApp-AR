@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BarberApp AR - Tu Lugar, Tu Estilo</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/" class="logo">BarberApp AR</a>
+          <nav class="nav" id="mainNav">
+            <a href="/">Inicio</a>
+            <a href="/negocios.html">Negocios</a>
+            <a href="#" id="authLink">Iniciar Sesión</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero Section -->
+      <section style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; padding: 4rem 0">
+        <div class="container" style="text-align: center">
+          <h1 style="font-size: 3rem; margin-bottom: 1rem; font-weight: bold">Tu Lugar, Tu Estilo</h1>
+          <p style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9">
+            Reserva turnos en las mejores barberías y peluquerías de Argentina
+          </p>
+          <a href="/negocios.html" class="btn btn-primary" style="background: white; color: #2563eb; font-size: 1.1rem">
+            Explorar Negocios
+          </a>
+        </div>
+      </section>
+
+      <!-- Features Section -->
+      <section style="padding: 4rem 0">
+        <div class="container">
+          <h2 style="text-align: center; font-size: 2rem; margin-bottom: 3rem">¿Por qué BarberApp AR?</h2>
+          <div class="grid grid-3">
+            <div class="card" style="text-align: center">
+              <div style="font-size: 3rem; margin-bottom: 1rem">📅</div>
+              <h3 class="card-title">Reserva Fácil</h3>
+              <p class="card-text">Agenda tu turno en segundos desde cualquier dispositivo</p>
+            </div>
+            <div class="card" style="text-align: center">
+              <div style="font-size: 3rem; margin-bottom: 1rem">💳</div>
+              <h3 class="card-title">Pago Flexible</h3>
+              <p class="card-text">Paga online o en el local, como prefieras</p>
+            </div>
+            <div class="card" style="text-align: center">
+              <div style="font-size: 3rem; margin-bottom: 1rem">⭐</div>
+              <h3 class="card-title">Los Mejores</h3>
+              <p class="card-text">Accede a los mejores profesionales de tu zona</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA Section -->
+      <section style="background-color: var(--surface); padding: 4rem 0">
+        <div class="container" style="text-align: center">
+          <h2 style="font-size: 2rem; margin-bottom: 1rem">¿Eres propietario de una barbería?</h2>
+          <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1.1rem">
+            Únete a BarberApp AR y gestiona tus turnos de forma profesional
+          </p>
+          <a href="/register.html" class="btn btn-primary" style="font-size: 1.1rem"> Registrar mi Negocio </a>
+        </div>
+      </section>
+    </main>
+
+    <footer style="background-color: var(--text); color: white; padding: 2rem 0; margin-top: 4rem">
+      <div class="container" style="text-align: center">
+        <p>&copy; 2025 BarberApp AR. Todos los derechos reservados.</p>
+      </div>
+    </footer>
+
+    <script src="/js/auth.js"></script>
+    <script>
+      // Actualizar navegación según estado de autenticación
+      const authLink = document.getElementById("authLink")
+      const mainNav = document.getElementById("mainNav")
+
+      if (isAuthenticated()) {
+        const perfil = getPerfil()
+        authLink.textContent = perfil?.nombre_completo || "Mi Cuenta"
+        authLink.href = "#"
+
+        // Agregar link a mis turnos
+        const misTurnosLink = document.createElement("a")
+        misTurnosLink.href = "/mis-turnos.html"
+        misTurnosLink.textContent = "Mis Turnos"
+        mainNav.insertBefore(misTurnosLink, authLink)
+
+        // Si es propietario, agregar link al dashboard
+        if (isPropietario()) {
+          const dashboardLink = document.createElement("a")
+          dashboardLink.href = "/admin/dashboard.html"
+          dashboardLink.textContent = "Dashboard"
+          mainNav.insertBefore(dashboardLink, authLink)
+        }
+
+        // Agregar opción de logout
+        authLink.addEventListener("click", (e) => {
+          e.preventDefault()
+          if (confirm("¿Deseas cerrar sesión?")) {
+            logout()
+          }
+        })
+      } else {
+        authLink.href = "/login.html"
+        authLink.textContent = "Iniciar Sesión"
+      }
+    </script>
+  </body>
+</html>

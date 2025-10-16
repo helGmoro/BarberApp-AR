@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Negocio - BarberApp AR</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/" class="logo">BarberApp AR</a>
+          <nav class="nav">
+            <a href="/">Inicio</a>
+            <a href="/negocios.html">Negocios</a>
+            <a href="/login.html" id="authLink">Iniciar Sesión</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" style="padding: 2rem 0">
+      <a href="/negocios.html" style="color: var(--primary); text-decoration: none; margin-bottom: 1rem; display: inline-block">
+        ← Volver a negocios
+      </a>
+
+      <div id="loadingNegocio" style="text-align: center; padding: 3rem">
+        <div class="loading" style="border-color: var(--primary); border-top-color: transparent"></div>
+        <p style="margin-top: 1rem; color: var(--text-secondary)">Cargando información...</p>
+      </div>
+
+      <div id="negocioContent" style="display: none">
+        <div class="card" style="margin-bottom: 2rem">
+          <h1 id="negocioNombre" style="font-size: 2.5rem; margin-bottom: 1rem"></h1>
+          <p id="negocioDescripcion" style="color: var(--text-secondary); margin-bottom: 1rem"></p>
+          <p style="color: var(--text-secondary); margin-bottom: 0.5rem">
+            📍 <span id="negocioDireccion"></span>
+          </p>
+          <p style="color: var(--text-secondary); margin-bottom: 0.5rem">
+            📞 <span id="negocioTelefono"></span>
+          </p>
+          <p style="color: var(--text-secondary)">
+            🕐 <span id="negocioHorario"></span>
+          </p>
+        </div>
+
+        <h2 style="font-size: 2rem; margin-bottom: 1.5rem">Servicios Disponibles</h2>
+
+        <div id="loadingServicios" style="text-align: center; padding: 2rem">
+          <div class="loading" style="border-color: var(--primary); border-top-color: transparent"></div>
+        </div>
+
+        <div id="serviciosGrid" class="grid grid-3" style="display: none"></div>
+
+        <div id="emptyServicios" style="text-align: center; padding: 2rem; display: none">
+          <p style="color: var(--text-secondary)">Este negocio aún no tiene servicios disponibles</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal de reserva -->
+    <div id="reservaModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center">
+      <div class="form-container" style="margin: 0; max-width: 500px">
+        <h2 class="form-title">Reservar Turno</h2>
+        <p class="form-subtitle" id="servicioSeleccionado"></p>
+
+        <div id="modalError" class="form-error"></div>
+        <div id="modalSuccess" class="form-success"></div>
+
+        <form id="reservaForm">
+          <div class="form-group">
+            <label for="fecha" class="form-label">Fecha</label>
+            <input type="date" id="fecha" class="form-input" required />
+          </div>
+
+          <div class="form-group">
+            <label for="hora" class="form-label">Hora</label>
+            <input type="time" id="hora" class="form-input" required />
+          </div>
+
+          <div class="form-group">
+            <label for="notas" class="form-label">Notas (opcional)</label>
+            <textarea id="notas" class="form-input" rows="3" placeholder="Alguna preferencia especial..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="pago" class="form-label">Pago</label>
+            <select id="pago" class="form-input" required>
+              <option value="tarjeta">Tarjeta de Crédito</option>
+              <option value="efectivo">Efectivo</option>
+            </select>
+          </div>
+
+          <div style="display: flex; gap: 1rem">
+            <button type="button" class="btn btn-secondary" style="flex: 1" onclick="closeModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" style="flex: 1">
+              <span id="btnReservaText">Reservar</span>
+              <span id="btnReservaLoading" class="loading" style="display: none"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search)
+      const negocioId = urlParams.get("id")
+      let servicioSeleccionado = null
+
+      if (!negocioId) {
+        window.location.href = "/negocios.html"
+      }
+
+      // Cargar información del negocio
+      async function loadNegocio() {
+        try {
+          const response = await fetch(`/api/negocios/${negocioId}`)
+          const negocio = await response.json()
+
+          document.getElementById("loadingNegocio").style.display = "none"
+          document.getElementById("negocioContent").style.display = "block"
+
+          document.getElementById("negocioNombre").textContent = negocio.nombre
+          document.getElementById("negocioDescripcion").textContent = negocio.descripcion || "Barbería profesional"
+          document.getElementById("negocioDireccion").textContent = negocio.direccion
+          document.getElementById("negocioTelefono").textContent = negocio.telefono || "Sin teléfono"
+          document.getElementById("negocioHorario").textContent = `${negocio.horario_apertura?.slice(0, 5) || "09:00"} - ${negocio.horario_cierre?.slice(0, 5) || "20:00"}`
+
+          loadServicios()
+        } catch (error) {
+          console.error("[v0] Error loading negocio:", error)
+          document.getElementById("loadingNegocio").innerHTML = `
+            <p style="color: var(--danger)">Error al cargar el negocio</p>
+          `
+        }
+      }
+
+      // Cargar servicios
+      async function loadServicios() {
+        try {
+          const response = await fetch(`/api/servicios/negocio/${negocioId}`)
+          const servicios = await response.json()
+
+          document.getElementById("loadingServicios").style.display = "none"
+
+          if (servicios.length === 0) {
+            document.getElementById("emptyServicios").style.display = "block"
+            return
+          }
+
+          const gridEl = document.getElementById("serviciosGrid")
+          gridEl.style.display = "grid"
+
+          servicios.forEach((servicio) => {
+            const card = document.createElement("div")
+            card.className = "card"
+            card.innerHTML = `
+              <h3 class="card-title">${servicio.nombre}</h3>
+              <p class="card-text">${servicio.descripcion || "Servicio profesional"}</p>
+              <p style="color: var(--text-secondary); margin-bottom: 0.5rem">
+                ⏱️ ${servicio.duracion_minutos} minutos
+              </p>
+              <p style="font-size: 1.5rem; font-weight: bold; color: var(--primary); margin-bottom: 1rem">
+                $${servicio.precio.toLocaleString("es-AR")}
+              </p>
+              <button class="btn btn-primary" style="width: 100%" onclick="openReservaModal(${JSON.stringify(servicio).replace(/"/g, "&quot;")})">
+                Reservar Turno
+              </button>
+            `
+            gridEl.appendChild(card)
+          })
+        } catch (error) {
+          console.error("[v0] Error loading servicios:", error)
+        }
+      }
+
+      // Abrir modal de reserva
+      function openReservaModal(servicio) {
+        if (!isAuthenticated()) {
+          alert("Debes iniciar sesión para reservar un turno")
+          window.location.href = "/login.html"
+          return
+        }
+
+        servicioSeleccionado = servicio
+        document.getElementById("servicioSeleccionado").textContent = `${servicio.nombre} - $${servicio.precio.toLocaleString("es-AR")}`
+
+        // Establecer fecha mínima (hoy)
+        const today = new Date().toISOString().split("T")[0]
+        document.getElementById("fecha").min = today
+        document.getElementById("fecha").value = today
+
+        document.getElementById("reservaModal").style.display = "flex"
+      }
+
+      // Cerrar modal
+      function closeModal() {
+        document.getElementById("reservaModal").style.display = "none"
+        document.getElementById("reservaForm").reset()
+        document.getElementById("modalError").classList.remove("show")
+        document.getElementById("modalSuccess").classList.remove("show")
+      }
+
+      // Manejar reserva
+      document.getElementById("reservaForm").addEventListener("submit", async (e) => {
+        e.preventDefault()
+
+        const fecha = document.getElementById("fecha").value
+        const hora = document.getElementById("hora").value
+        const notas = document.getElementById("notas").value
+        const pago = document.getElementById("pago").value
+
+        const btnText = document.getElementById("btnReservaText")
+        const btnLoading = document.getElementById("btnReservaLoading")
+        const errorEl = document.getElementById("modalError")
+        const successEl = document.getElementById("modalSuccess")
+
+        btnText.style.display = "none"
+        btnLoading.style.display = "inline-block"
+        errorEl.classList.remove("show")
+        successEl.classList.remove("show")
+
+        try {
+          // Calcular hora de fin
+          const [hours, minutes] = hora.split(":")
+          const horaInicio = new Date(`2000-01-01T${hora}:00`)
+          const horaFin = new Date(horaInicio.getTime() + servicioSeleccionado.duracion_minutos * 60000)
+          const horaFinStr = horaFin.toTimeString().slice(0, 5)
+
+          const response = await authenticatedFetch("/api/turnos", {
+            method: "POST",
+            body: JSON.stringify({
+              negocio_id: negocioId,
+              servicio_id: servicioSeleccionado.id,
+              fecha,
+              hora_inicio: hora,
+              hora_fin: horaFinStr,
+              notas,
+              pago,
+            }),
+          })
+
+          const data = await response.json()
+
+          if (!response.ok) {
+            throw new Error(data.error || "Error al crear turno")
+          }
+
+          successEl.textContent = "¡Turno reservado exitosamente!"
+          successEl.classList.add("show")
+
+          setTimeout(() => {
+            closeModal()
+            if (confirm("¿Deseas pagar tu turno ahora?")) {
+              window.location.href = `/pago.html?turno=${data.id}`
+            } else {
+              window.location.href = "/mis-turnos.html"
+            }
+          }, 1500)
+        } catch (error) {
+          console.error("[v0] Error creating turno:", error)
+          errorEl.textContent = error.message
+          errorEl.classList.add("show")
+        } finally {
+          btnText.style.display = "inline"
+          btnLoading.style.display = "none"
+        }
+      })
+
+      loadNegocio()
+    </script>
+  </body>
+</html>

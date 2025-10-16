@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar Sesión - BarberApp AR</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/" class="logo">BarberApp AR</a>
+          <nav class="nav">
+            <a href="/">Inicio</a>
+            <a href="/register.html">Registrarse</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="form-container">
+        <h1 class="form-title">Iniciar Sesión</h1>
+        <p class="form-subtitle">Accede a tu cuenta de BarberApp AR</p>
+
+        <div id="errorMessage" class="form-error"></div>
+        <div id="successMessage" class="form-success"></div>
+
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" id="email" class="form-input" placeholder="tu@email.com" required />
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">Contraseña</label>
+            <input type="password" id="password" class="form-input" placeholder="••••••••" required />
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%">
+            <span id="btnText">Iniciar Sesión</span>
+            <span id="btnLoading" class="loading" style="display: none"></span>
+          </button>
+        </form>
+
+        <div class="form-link">
+          ¿No tienes cuenta? <a href="/register.html">Regístrate aquí</a>
+        </div>
+      </div>
+    </main>
+
+    <script src="/js/auth.js"></script>
+    <script>
+      document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault()
+
+        const email = document.getElementById("email").value
+        const password = document.getElementById("password").value
+
+        const btnText = document.getElementById("btnText")
+        const btnLoading = document.getElementById("btnLoading")
+        const errorMessage = document.getElementById("errorMessage")
+        const successMessage = document.getElementById("successMessage")
+
+        // Mostrar loading
+        btnText.style.display = "none"
+        btnLoading.style.display = "inline-block"
+        errorMessage.classList.remove("show")
+        successMessage.classList.remove("show")
+
+        try {
+          const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+          })
+
+          const data = await response.json()
+
+          if (!response.ok) {
+            throw new Error(data.error || "Error al iniciar sesión")
+          }
+
+          // Guardar sesión
+          localStorage.setItem("session", JSON.stringify(data.session))
+          localStorage.setItem("user", JSON.stringify(data.user))
+          localStorage.setItem("perfil", JSON.stringify(data.perfil))
+
+          successMessage.textContent = "¡Inicio de sesión exitoso! Redirigiendo..."
+          successMessage.classList.add("show")
+
+          // Redirigir según el tipo de usuario
+          setTimeout(() => {
+            if (data.perfil && data.perfil.es_propietario) {
+              window.location.href = "/admin/dashboard.html"
+            } else {
+              window.location.href = "/index.html"
+            }
+          }, 1500)
+        } catch (error) {
+          console.error("[v0] Login error:", error)
+          errorMessage.textContent = error.message
+          errorMessage.classList.add("show")
+        } finally {
+          btnText.style.display = "inline"
+          btnLoading.style.display = "none"
+        }
+      })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Procesar Pago - BarberApp AR</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/" class="logo">BarberApp AR</a>
+          <nav class="nav">
+            <a href="/">Inicio</a>
+            <a href="/mis-turnos.html">Mis Turnos</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" style="padding: 2rem 0">
+      <div class="form-container">
+        <h1 class="form-title">Procesar Pago</h1>
+        <p class="form-subtitle">Completa el pago de tu turno</p>
+
+        <div id="turnoInfo" class="card" style="margin-bottom: 2rem">
+          <div id="loadingTurno" style="text-align: center; padding: 2rem">
+            <div class="loading" style="border-color: var(--primary); border-top-color: transparent"></div>
+          </div>
+        </div>
+
+        <div id="errorMessage" class="form-error"></div>
+
+        <div id="paymentOptions" style="display: none">
+          <h3 style="margin-bottom: 1rem">Selecciona método de pago</h3>
+
+          <div style="display: flex; flex-direction: column; gap: 1rem">
+            <button class="btn btn-primary" style="width: 100%; padding: 1rem" onclick="pagarConMercadoPago()">
+              <span style="font-size: 1.1rem">💳 Pagar con Mercado Pago</span>
+            </button>
+
+            <button class="btn btn-outline" style="width: 100%; padding: 1rem" onclick="pagarEnLocal()">
+              <span style="font-size: 1.1rem">🏪 Pagar en el Local</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="processingPayment" style="display: none; text-align: center; padding: 2rem">
+          <div class="loading" style="border-color: var(--primary); border-top-color: transparent"></div>
+          <p style="margin-top: 1rem; color: var(--text-secondary)">Procesando pago...</p>
+        </div>
+      </div>
+    </main>
+
+    <script src="/js/auth.js"></script>
+    <script>
+      requireAuth()
+
+      const urlParams = new URLSearchParams(window.location.search)
+      const turnoId = urlParams.get("turno")
+      let turnoData = null
+
+      if (!turnoId) {
+        window.location.href = "/mis-turnos.html"
+      }
+
+      async function loadTurno() {
+        try {
+          const response = await authenticatedFetch("/api/turnos/mis-turnos")
+          const turnos = await response.json()
+          turnoData = turnos.find((t) => t.id === turnoId)
+
+          if (!turnoData) {
+            throw new Error("Turno no encontrado")
+          }
+
+          if (turnoData.pagado) {
+            alert("Este turno ya está pagado")
+            window.location.href = "/mis-turnos.html"
+            return
+          }
+
+          const infoDiv = document.getElementById("turnoInfo")
+          infoDiv.innerHTML = `
+            <h3 class="card-title">${turnoData.negocios.nombre}</h3>
+            <p class="card-text">${turnoData.servicios?.nombre || "Servicio"}</p>
+            <p style="color: var(--text-secondary); margin-bottom: 0.5rem">
+              📅 ${new Date(turnoData.fecha).toLocaleDateString("es-AR")} a las ${turnoData.hora_inicio.slice(0, 5)}
+            </p>
+            <p style="font-size: 2rem; font-weight: bold; color: var(--primary); margin-top: 1rem">
+              Total: $${turnoData.precio_total?.toLocaleString("es-AR")}
+            </p>
+          `
+
+          document.getElementById("paymentOptions").style.display = "block"
+        } catch (error) {
+          console.error("[v0] Error loading turno:", error)
+          document.getElementById("errorMessage").textContent = error.message
+          document.getElementById("errorMessage").classList.add("show")
+        }
+      }
+
+      async function pagarConMercadoPago() {
+        document.getElementById("paymentOptions").style.display = "none"
+        document.getElementById("processingPayment").style.display = "block"
+
+        try {
+          const response = await authenticatedFetch("/api/pagos/crear-preferencia", {
+            method: "POST",
+            body: JSON.stringify({
+              turno_id: turnoId,
+              titulo: `${turnoData.servicios?.nombre || "Servicio"} - ${turnoData.negocios.nombre}`,
+              precio: turnoData.precio_total,
+            }),
+          })
+
+          const data = await response.json()
+
+          if (!response.ok) {
+            throw new Error(data.error || "Error al crear preferencia de pago")
+          }
+
+          // Redirigir a Mercado Pago
+          window.location.href = data.init_point
+        } catch (error) {
+          console.error("[v0] Error creating preference:", error)
+          document.getElementById("processingPayment").style.display = "none"
+          document.getElementById("paymentOptions").style.display = "block"
+          document.getElementById("errorMessage").textContent = error.message
+          document.getElementById("errorMessage").classList.add("show")
+        }
+      }
+
+      async function pagarEnLocal() {
+        if (!confirm("¿Confirmas que pagarás en el local?")) {
+          return
+        }
+
+        try {
+          const response = await authenticatedFetch(`/api/turnos/${turnoId}`, {
+            method: "PUT",
+            body: JSON.stringify({
+              metodo_pago: "efectivo",
+              estado: "confirmado",
+            }),
+          })
+
+          if (!response.ok) {
+            throw new Error("Error al actualizar turno")
+          }
+
+          alert("Turno confirmado. Recuerda pagar en el local.")
+          window.location.href = "/mis-turnos.html"
+        } catch (error) {
+          console.error("[v0] Error updating turno:", error)
+          alert("Error al confirmar turno")
+        }
+      }
+
+      loadTurno()
+    </script>
+  </body>
+</html>

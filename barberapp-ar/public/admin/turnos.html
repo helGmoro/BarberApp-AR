@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Turnos - BarberApp AR</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/" class="logo">BarberApp AR</a>
+          <nav class="nav">
+            <a href="/admin/dashboard.html">Dashboard</a>
+            <a href="/admin/negocios.html">Mis Negocios</a>
+            <a href="/admin/turnos.html">Turnos</a>
+            <a href="#" onclick="logout()">Cerrar Sesión</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" style="padding: 2rem 0">
+      <h1 style="font-size: 2.5rem; margin-bottom: 2rem">Gestión de Turnos</h1>
+
+      <div class="card" style="margin-bottom: 2rem">
+        <label for="negocioSelect" class="form-label">Seleccionar Negocio</label>
+        <select id="negocioSelect" class="form-input" onchange="loadTurnos()">
+          <option value="">Cargando negocios...</option>
+        </select>
+      </div>
+
+      <div id="loadingTurnos" style="text-align: center; padding: 3rem; display: none">
+        <div class="loading" style="border-color: var(--primary); border-top-color: transparent"></div>
+      </div>
+
+      <div id="turnosContainer"></div>
+
+      <div id="emptyTurnos" style="text-align: center; padding: 3rem; display: none">
+        <p style="font-size: 1.25rem; color: var(--text-secondary)">No hay turnos para este negocio</p>
+      </div>
+    </main>
+
+    <script src="/js/auth.js"></script>
+    <script>
+      requirePropietario()
+
+      let negocios = []
+
+      async function loadNegocios() {
+        try {
+          const response = await authenticatedFetch("/api/negocios/mis-negocios/lista")
+          negocios = await response.json()
+
+          const select = document.getElementById("negocioSelect")
+
+          if (negocios.length === 0) {
+            select.innerHTML = '<option value="">No tienes negocios registrados</option>'
+            return
+          }
+
+          select.innerHTML =
+            '<option value="">Selecciona un negocio</option>' +
+            negocios.map((n) => `<option value="${n.id}">${n.nombre}</option>`).join("")
+
+          if (negocios.length === 1) {
+            select.value = negocios[0].id
+            loadTurnos()
+          }
+        } catch (error) {
+          console.error("[v0] Error loading negocios:", error)
+        }
+      }
+
+      async function loadTurnos() {
+        const negocioId = document.getElementById("negocioSelect").value
+
+        if (!negocioId) {
+          document.getElementById("turnosContainer").innerHTML = ""
+          return
+        }
+
+        document.getElementById("loadingTurnos").style.display = "block"
+        document.getElementById("turnosContainer").innerHTML = ""
+        document.getElementById("emptyTurnos").style.display = "none"
+
+        try {
+          const response = await authenticatedFetch(`/api/turnos/negocio/${negocioId}`)
+          const turnos = await response.json()
+
+          document.getElementById("loadingTurnos").style.display = "none"
+
+          if (turnos.length === 0) {
+            document.getElementById("emptyTurnos").style.display = "block"
+            return
+          }
+
+          const container = document.getElementById("turnosContainer")
+
+          // Agrupar por fecha
+          const turnosPorFecha = turnos.reduce((acc, turno) => {
+            const fecha = turno.fecha
+            if (!acc[fecha]) acc[fecha] = []
+            acc[fecha].push(turno)
+            return acc
+          }, {})
+
+          // Ordenar fechas
+          const fechasOrdenadas = Object.keys(turnosPorFecha).sort()
+
+          container.innerHTML = fechasOrdenadas
+            .map((fecha) => {
+              const turnosDia = turnosPorFecha[fecha].sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio))
+
+              return `
+              <div class="card" style="margin-bottom: 1.5rem">
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem">
+                  ${new Date(fecha + "T00:00:00").toLocaleDateString("es-AR", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                </h3>
+                ${turnosDia
+                  .map((turno) => {
+                    const estadoColor =
+                      turno.estado === "confirmado"
+                        ? "var(--success)"
+                        : turno.estado === "cancelado"
+                          ? "var(--danger)"
+                          : turno.estado === "completado"
+                            ? "var(--secondary)"
+                            : "var(--warning)"
+
+                    return `
+                    <div style="padding: 1rem; border: 1px solid var(--border); border-radius: 0.5rem; margin-bottom: 0.75rem">
+                      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem">
+                        <div>
+                          <p style="font-weight: 600; font-size: 1.1rem">${turno.hora_inicio.slice(0, 5)} - ${turno.hora_fin.slice(0, 5)}</p>
+                          <p style="color: var(--text-secondary)">${turno.perfiles?.nombre_completo || "Cliente"}</p>
+                          <p style="color: var(--text-secondary); font-size: 0.9rem">📞 ${turno.perfiles?.telefono || "Sin teléfono"}</p>
+                        </div>
+                        <span style="background: ${estadoColor}; color: white; padding: 0.25rem 0.75rem; border-radius: 0.25rem; font-size: 0.875rem; font-weight: 600">
+                          ${turno.estado.toUpperCase()}
+                        </span>
+                      </div>
+                      <p style="color: var(--text-secondary); margin-bottom: 0.5rem">
+                        ${turno.servicios?.nombre || "Servicio"} - $${turno.precio_total?.toLocaleString("es-AR")}
+                      </p>
+                      ${turno.notas ? `<p style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic">Nota: ${turno.notas}</p>` : ""}
+                      ${
+                        turno.estado === "pendiente"
+                          ? `
+                        <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem">
+                          <button class="btn btn-primary" style="flex: 1; padding: 0.5rem" onclick="cambiarEstado('${turno.id}', 'confirmado')">
+                            Confirmar
+                          </button>
+                          <button class="btn btn-secondary" style="flex: 1; padding: 0.5rem" onclick="cambiarEstado('${turno.id}', 'cancelado')">
+                            Cancelar
+                          </button>
+                        </div>
+                      `
+                          : turno.estado === "confirmado"
+                            ? `
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 0.75rem; padding: 0.5rem" onclick="cambiarEstado('${turno.id}', 'completado')">
+                          Marcar como Completado
+                        </button>
+                      `
+                            : ""
+                      }
+                    </div>
+                  `
+                  })
+                  .join("")}
+              </div>
+            `
+            })
+            .join("")
+        } catch (error) {
+          console.error("[v0] Error loading turnos:", error)
+          document.getElementById("loadingTurnos").style.display = "none"
+        }
+      }
+
+      async function cambiarEstado(turnoId, nuevoEstado) {
+        try {
+          const response = await authenticatedFetch(`/api/turnos/${turnoId}`, {
+            method: "PUT",
+            body: JSON.stringify({ estado: nuevoEstado }),
+          })
+
+          if (response.ok) {
+            loadTurnos()
+          }
+        } catch (error) {
+          console.error("[v0] Error updating turno:", error)
+          alert("Error al actualizar el turno")
+        }
+      }
+
+      loadNegocios()
+    </script>
+  </body>
+</html>

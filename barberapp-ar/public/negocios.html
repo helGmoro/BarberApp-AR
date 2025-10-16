@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Negocios - BarberApp AR</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/" class="logo">BarberApp AR</a>
+          <nav class="nav" id="mainNav">
+            <a href="/">Inicio</a>
+            <a href="/negocios.html">Negocios</a>
+            <a href="/login.html" id="authLink">Iniciar Sesión</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" style="padding: 2rem 0">
+      <h1 style="font-size: 2.5rem; margin-bottom: 2rem">Negocios Disponibles</h1>
+
+      <div id="loadingNegocios" style="text-align: center; padding: 3rem">
+        <div class="loading" style="border-color: var(--primary); border-top-color: transparent"></div>
+        <p style="margin-top: 1rem; color: var(--text-secondary)">Cargando negocios...</p>
+      </div>
+
+      <div id="negociosGrid" class="grid grid-2" style="display: none"></div>
+
+      <div id="emptyState" style="text-align: center; padding: 3rem; display: none">
+        <p style="font-size: 1.25rem; color: var(--text-secondary)">No hay negocios disponibles en este momento</p>
+      </div>
+    </main>
+
+    <script src="/js/auth.js"></script>
+    <script>
+      // Actualizar navegación
+      const authLink = document.getElementById("authLink")
+      const mainNav = document.getElementById("mainNav")
+
+      if (isAuthenticated()) {
+        const perfil = getPerfil()
+        authLink.textContent = perfil?.nombre_completo || "Mi Cuenta"
+        authLink.href = "#"
+
+        const misTurnosLink = document.createElement("a")
+        misTurnosLink.href = "/mis-turnos.html"
+        misTurnosLink.textContent = "Mis Turnos"
+        mainNav.insertBefore(misTurnosLink, authLink)
+
+        if (isPropietario()) {
+          const dashboardLink = document.createElement("a")
+          dashboardLink.href = "/admin/dashboard.html"
+          dashboardLink.textContent = "Dashboard"
+          mainNav.insertBefore(dashboardLink, authLink)
+        }
+
+        authLink.addEventListener("click", (e) => {
+          e.preventDefault()
+          if (confirm("¿Deseas cerrar sesión?")) {
+            logout()
+          }
+        })
+      }
+
+      // Cargar negocios
+      async function loadNegocios() {
+        try {
+          const response = await fetch("/api/negocios")
+          const negocios = await response.json()
+
+          const loadingEl = document.getElementById("loadingNegocios")
+          const gridEl = document.getElementById("negociosGrid")
+          const emptyEl = document.getElementById("emptyState")
+
+          loadingEl.style.display = "none"
+
+          if (negocios.length === 0) {
+            emptyEl.style.display = "block"
+            return
+          }
+
+          gridEl.style.display = "grid"
+
+          negocios.forEach((negocio) => {
+            const card = document.createElement("div")
+            card.className = "card"
+            card.style.cursor = "pointer"
+            card.innerHTML = `
+              <h3 class="card-title">${negocio.nombre}</h3>
+              <p class="card-text">${negocio.descripcion || "Barbería profesional"}</p>
+              <p style="color: var(--text-secondary); margin-bottom: 0.5rem">
+                📍 ${negocio.direccion}
+              </p>
+              <p style="color: var(--text-secondary); margin-bottom: 1rem">
+                📞 ${negocio.telefono || "Sin teléfono"}
+              </p>
+              <p style="color: var(--text-secondary); font-size: 0.9rem">
+                🕐 ${negocio.horario_apertura?.slice(0, 5) || "09:00"} - ${negocio.horario_cierre?.slice(0, 5) || "20:00"}
+              </p>
+              <a href="/negocio.html?id=${negocio.id}" class="btn btn-primary" style="margin-top: 1rem; width: 100%">
+                Ver Servicios
+              </a>
+            `
+            gridEl.appendChild(card)
+          })
+        } catch (error) {
+          console.error("[v0] Error loading negocios:", error)
+          document.getElementById("loadingNegocios").innerHTML = `
+            <p style="color: var(--danger)">Error al cargar negocios. Por favor intenta de nuevo.</p>
+          `
+        }
+      }
+
+      loadNegocios()
+    </script>
+  </body>
+</html>

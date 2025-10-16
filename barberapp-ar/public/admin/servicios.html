@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Servicios - BarberApp AR</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/" class="logo">BarberApp AR</a>
+          <nav class="nav">
+            <a href="/admin/dashboard.html">Dashboard</a>
+            <a href="/admin/negocios.html">Mis Negocios</a>
+            <a href="/admin/turnos.html">Turnos</a>
+            <a href="#" onclick="logout()">Cerrar Sesión</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" style="padding: 2rem 0">
+      <a href="/admin/negocios.html" style="color: var(--primary); text-decoration: none; margin-bottom: 1rem; display: inline-block">
+        ← Volver a mis negocios
+      </a>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem">
+        <h1 style="font-size: 2.5rem" id="negocioNombre">Servicios</h1>
+        <button class="btn btn-primary" onclick="showCrearServicio()">Crear Servicio</button>
+      </div>
+
+      <div id="loadingServicios" style="text-align: center; padding: 3rem">
+        <div class="loading" style="border-color: var(--primary); border-top-color: transparent"></div>
+      </div>
+
+      <div id="serviciosGrid" class="grid grid-3" style="display: none"></div>
+
+      <div id="emptyServicios" style="text-align: center; padding: 3rem; display: none">
+        <p style="font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 1rem">
+          Aún no tienes servicios registrados
+        </p>
+        <button class="btn btn-primary" onclick="showCrearServicio()">Crear Primer Servicio</button>
+      </div>
+    </main>
+
+    <!-- Modal Crear/Editar Servicio -->
+    <div id="servicioModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center">
+      <div class="form-container" style="margin: 0; max-width: 500px">
+        <h2 class="form-title" id="modalTitle">Crear Servicio</h2>
+
+        <div id="modalError" class="form-error"></div>
+        <div id="modalSuccess" class="form-success"></div>
+
+        <form id="servicioForm">
+          <div class="form-group">
+            <label for="nombre" class="form-label">Nombre del Servicio</label>
+            <input type="text" id="nombre" class="form-input" required />
+          </div>
+
+          <div class="form-group">
+            <label for="descripcion" class="form-label">Descripción</label>
+            <textarea id="descripcion" class="form-input" rows="3"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="duracion_minutos" class="form-label">Duración (minutos)</label>
+            <input type="number" id="duracion_minutos" class="form-input" min="5" step="5" required />
+          </div>
+
+          <div class="form-group">
+            <label for="precio" class="form-label">Precio ($)</label>
+            <input type="number" id="precio" class="form-input" min="0" step="0.01" required />
+          </div>
+
+          <div style="display: flex; gap: 1rem">
+            <button type="button" class="btn btn-secondary" style="flex: 1" onclick="closeModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" style="flex: 1">
+              <span id="btnText">Guardar</span>
+              <span id="btnLoading" class="loading" style="display: none"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+      requirePropietario()
+
+      const urlParams = new URLSearchParams(window.location.search)
+      const negocioId = urlParams.get("negocio")
+      let editingServicioId = null
+
+      if (!negocioId) {
+        window.location.href = "/admin/negocios.html"
+      }
+
+      async function loadNegocio() {
+        try {
+          const response = await fetch(`/api/negocios/${negocioId}`)
+          const negocio = await response.json()
+          document.getElementById("negocioNombre").textContent = `Servicios - ${negocio.nombre}`
+        } catch (error) {
+          console.error("[v0] Error loading negocio:", error)
+        }
+      }
+
+      async function loadServicios() {
+        try {
+          const response = await fetch(`/api/servicios/negocio/${negocioId}`)
+          const servicios = await response.json()
+
+          document.getElementById("loadingServicios").style.display = "none"
+
+          if (servicios.length === 0) {
+            document.getElementById("emptyServicios").style.display = "block"
+            return
+          }
+
+          const grid = document.getElementById("serviciosGrid")
+          grid.style.display = "grid"
+
+          grid.innerHTML = servicios
+            .map(
+              (servicio) => `
+            <div class="card">
+              <h3 class="card-title">${servicio.nombre}</h3>
+              <p class="card-text">${servicio.descripcion || ""}</p>
+              <p style="color: var(--text-secondary); margin-bottom: 0.5rem">
+                ⏱️ ${servicio.duracion_minutos} minutos
+              </p>
+              <p style="font-size: 1.5rem; font-weight: bold; color: var(--primary); margin-bottom: 1rem">
+                $${servicio.precio.toLocaleString("es-AR")}
+              </p>
+              <div style="display: flex; gap: 0.5rem">
+                <button class="btn btn-outline" style="flex: 1" onclick="editServicio('${servicio.id}')">Editar</button>
+                <button class="btn btn-secondary" style="flex: 1" onclick="deleteServicio('${servicio.id}')">Eliminar</button>
+              </div>
+            </div>
+          `
+            )
+            .join("")
+        } catch (error) {
+          console.error("[v0] Error loading servicios:", error)
+        }
+      }
+
+      function showCrearServicio() {
+        editingServicioId = null
+        document.getElementById("modalTitle").textContent = "Crear Servicio"
+        document.getElementById("servicioForm").reset()
+        document.getElementById("servicioModal").style.display = "flex"
+      }
+
+      async function editServicio(id) {
+        try {
+          const response = await fetch(`/api/servicios/negocio/${negocioId}`)
+          const servicios = await response.json()
+          const servicio = servicios.find((s) => s.id === id)
+
+          if (!servicio) return
+
+          editingServicioId = id
+          document.getElementById("modalTitle").textContent = "Editar Servicio"
+          document.getElementById("nombre").value = servicio.nombre
+          document.getElementById("descripcion").value = servicio.descripcion || ""
+          document.getElementById("duracion_minutos").value = servicio.duracion_minutos
+          document.getElementById("precio").value = servicio.precio
+
+          document.getElementById("servicioModal").style.display = "flex"
+        } catch (error) {
+          console.error("[v0] Error loading servicio:", error)
+        }
+      }
+
+      async function deleteServicio(id) {
+        if (!confirm("¿Estás seguro de que deseas eliminar este servicio?")) {
+          return
+        }
+
+        try {
+          const response = await authenticatedFetch(`/api/servicios/${id}`, {
+            method: "DELETE",
+          })
+
+          if (response.ok) {
+            loadServicios()
+          }
+        } catch (error) {
+          console.error("[v0] Error deleting servicio:", error)
+          alert("Error al eliminar servicio")
+        }
+      }
+
+      function closeModal() {
+        document.getElementById("servicioModal").style.display = "none"
+        document.getElementById("servicioForm").reset()
+        document.getElementById("modalError").classList.remove("show")
+        document.getElementById("modalSuccess").classList.remove("show")
+        editingServicioId = null
+      }
+
+      document.getElementById("servicioForm").addEventListener("submit", async (e) => {
+        e.preventDefault()
+
+        const formData = {
+          negocio_id: negocioId,
+          nombre: document.getElementById("nombre").value,
+          descripcion: document.getElementById("descripcion").value,
+          duracion_minutos: parseInt(document.getElementById("duracion_minutos").value),
+          precio: parseFloat(document.getElementById("precio").value),
+        }
+
+        const btnText = document.getElementById("btnText")
+        const btnLoading = document.getElementById("btnLoading")
+        const errorEl = document.getElementById("modalError")
+        const successEl = document.getElementById("modalSuccess")
+
+        btnText.style.display = "none"
+        btnLoading.style.display = "inline-block"
+        errorEl.classList.remove("show")
+        successEl.classList.remove("show")
+
+        try {
+          const url = editingServicioId ? `/api/servicios/${editingServicioId}` : "/api/servicios"
+          const method = editingServicioId ? "PUT" : "POST"
+
+          const response = await authenticatedFetch(url, {
+            method,
+            body: JSON.stringify(formData),
+          })
+
+          const data = await response.json()
+
+          if (!response.ok) {
+            throw new Error(data.error || "Error al guardar servicio")
+          }
+
+          successEl.textContent = editingServicioId
+            ? "Servicio actualizado exitosamente"
+            : "Servicio creado exitosamente"
+          successEl.classList.add("show")
+
+          setTimeout(() => {
+            closeModal()
+            loadServicios()
+          }, 1500)
+        } catch (error) {
+          console.error("[v0] Error saving servicio:", error)
+          errorEl.textContent = error.message
+          errorEl.classList.add("show")
+        } finally {
+          btnText.style.display = "inline"
+          btnLoading.style.display = "none"
+        }
+      })
+
+      loadNegocio()
+      loadServicios()
+    </script>
+  </body>
+</html>

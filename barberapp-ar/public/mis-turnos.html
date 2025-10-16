@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mis Turnos - BarberApp AR</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <a href="/" class="logo">BarberApp AR</a>
+          <nav class="nav">
+            <a href="/">Inicio</a>
+            <a href="/negocios.html">Negocios</a>
+            <a href="/mis-turnos.html">Mis Turnos</a>
+            <a href="#" id="authLink" onclick="logout()">Cerrar Sesión</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" style="padding: 2rem 0">
+      <h1 style="font-size: 2.5rem; margin-bottom: 2rem">Mis Turnos</h1>
+
+      <div id="loadingTurnos" style="text-align: center; padding: 3rem">
+        <div class="loading" style="border-color: var(--primary); border-top-color: transparent"></div>
+        <p style="margin-top: 1rem; color: var(--text-secondary)">Cargando turnos...</p>
+      </div>
+
+      <div id="turnosContainer" style="display: none"></div>
+
+      <div id="emptyTurnos" style="text-align: center; padding: 3rem; display: none">
+        <p style="font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 1rem">
+          No tienes turnos reservados
+        </p>
+        <a href="/negocios.html" class="btn btn-primary">Reservar un Turno</a>
+      </div>
+    </main>
+
+    <script src="/js/auth.js"></script>
+    <script>
+      requireAuth()
+
+      const perfil = getPerfil()
+      document.getElementById("authLink").textContent = perfil?.nombre_completo || "Mi Cuenta"
+
+      async function loadTurnos() {
+        try {
+          const response = await authenticatedFetch("/api/turnos/mis-turnos")
+          const turnos = await response.json()
+
+          document.getElementById("loadingTurnos").style.display = "none"
+
+          if (turnos.length === 0) {
+            document.getElementById("emptyTurnos").style.display = "block"
+            return
+          }
+
+          const container = document.getElementById("turnosContainer")
+          container.style.display = "block"
+
+          turnos.forEach((turno) => {
+            const estadoColor =
+              turno.estado === "confirmado"
+                ? "var(--success)"
+                : turno.estado === "cancelado"
+                  ? "var(--danger)"
+                  : turno.estado === "completado"
+                    ? "var(--secondary)"
+                    : "var(--warning)"
+
+            const card = document.createElement("div")
+            card.className = "card"
+            card.style.marginBottom = "1rem"
+            card.innerHTML = `
+              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem">
+                <div>
+                  <h3 class="card-title">${turno.negocios.nombre}</h3>
+                  <p style="color: var(--text-secondary)">${turno.servicios?.nombre || "Servicio"}</p>
+                </div>
+                <span style="background: ${estadoColor}; color: white; padding: 0.25rem 0.75rem; border-radius: 0.25rem; font-size: 0.875rem; font-weight: 600">
+                  ${turno.estado.toUpperCase()}
+                </span>
+              </div>
+              <p style="color: var(--text-secondary); margin-bottom: 0.5rem">
+                📅 ${new Date(turno.fecha).toLocaleDateString("es-AR")} a las ${turno.hora_inicio.slice(0, 5)}
+              </p>
+              <p style="color: var(--text-secondary); margin-bottom: 0.5rem">
+                📍 ${turno.negocios.direccion}
+              </p>
+              <p style="color: var(--text-secondary); margin-bottom: 1rem">
+                💰 $${turno.precio_total?.toLocaleString("es-AR")} ${turno.pagado ? "✓ Pagado" : "- Pendiente"}
+              </p>
+              ${
+                turno.estado === "pendiente"
+                  ? `
+                <div style="display: flex; gap: 0.5rem">
+                  ${
+                    !turno.pagado
+                      ? `
+                    <a href="/pago.html?turno=${turno.id}" class="btn btn-primary" style="flex: 1; text-decoration: none">
+                      Pagar Ahora
+                    </a>
+                  `
+                      : ""
+                  }
+                  <button class="btn btn-secondary" style="flex: 1" onclick="cancelarTurno('${turno.id}')">
+                    Cancelar Turno
+                  </button>
+                </div>
+              `
+                  : ""
+              }
+            `
+            container.appendChild(card)
+          })
+        } catch (error) {
+          console.error("[v0] Error loading turnos:", error)
+          document.getElementById("loadingTurnos").innerHTML = `
+            <p style="color: var(--danger)">Error al cargar turnos</p>
+          `
+        }
+      }
+
+      async function cancelarTurno(turnoId) {
+        if (!confirm("¿Estás seguro de que deseas cancelar este turno?")) {
+          return
+        }
+
+        try {
+          const response = await authenticatedFetch(`/api/turnos/${turnoId}`, {
+            method: "DELETE",
+          })
+
+          if (response.ok) {
+            alert("Turno cancelado exitosamente")
+            location.reload()
+          } else {
+            throw new Error("Error al cancelar turno")
+          }
+        } catch (error) {
+          console.error("[v0] Error canceling turno:", error)
+          alert("Error al cancelar el turno")
+        }
+      }
+
+      loadTurnos()
+    </script>
+  </body>
+</html>
