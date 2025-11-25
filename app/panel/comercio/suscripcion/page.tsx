@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Check, Crown } from "lucide-react"
+import { CheckoutButton } from "@/components/panel/checkout-button"
 
 export default async function SuscripcionPage() {
   const supabase = await getSupabaseServerClient()
@@ -14,6 +15,11 @@ export default async function SuscripcionPage() {
 
   if (!user) {
     redirect("/login")
+  }
+
+  const { data: profile } = await supabase.from("profiles").select("user_type").eq("id", user.id).single()
+  if (profile?.user_type !== "comercio") {
+    redirect("/panel")
   }
 
   const { data: comercio } = await supabase.from("comercios").select("*").eq("owner_id", user.id).single()
@@ -145,7 +151,7 @@ export default async function SuscripcionPage() {
                     Soporte prioritario
                   </li>
                 </ul>
-                <Button className="w-full mt-6">Actualizar a Premium</Button>
+                <CheckoutButton />
               </CardContent>
             </Card>
           </div>

@@ -14,6 +14,11 @@ export default async function NuevoServicioPage() {
     redirect("/login")
   }
 
+  const { data: profile } = await supabase.from("profiles").select("user_type").eq("id", user.id).single()
+  if (profile?.user_type !== "comercio") {
+    redirect("/panel")
+  }
+
   const { data: comercio } = await supabase.from("comercios").select("id").eq("owner_id", user.id).single()
 
   if (!comercio) {

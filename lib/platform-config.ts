@@ -15,7 +15,7 @@ export async function getPlatformConfig(): Promise<PlatformConfig> {
   const { data, error } = await supabase.from("platform_config").select("config_key, config_value, config_type")
 
   if (error) {
-    console.error("[v0] Error fetching platform config:", error)
+    console.error("[BarberApp] Error fetching platform config:", error)
     // Valores por defecto si falla
     return {
       commission_sena_percentage: 3,
@@ -38,6 +38,15 @@ export async function getPlatformConfig(): Promise<PlatformConfig> {
   })
 
   return config as PlatformConfig
+}
+
+export function getBaseUrl(): string {
+  // En producción, usar la URL del dominio
+  if (process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL
+  }
+  // En desarrollo, usar localhost
+  return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
 }
 
 export async function updatePlatformConfig(key: string, value: string | number | boolean) {

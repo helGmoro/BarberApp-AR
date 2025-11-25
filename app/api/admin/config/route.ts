@@ -38,7 +38,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("[v0] Error updating config:", error)
+    console.error("[BarberApp] Error updating config:", error)
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }

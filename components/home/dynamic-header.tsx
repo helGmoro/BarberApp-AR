@@ -70,9 +70,6 @@ export function DynamicHeader() {
             <div className="h-9 w-32 bg-muted/20 rounded animate-pulse" />
           ) : user ? (
             <>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/panel">Mi Panel</Link>
-              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
@@ -92,11 +89,6 @@ export function DynamicHeader() {
                     <Link href="/panel/perfil" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       Mi Perfil
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/panel" className="cursor-pointer">
-                      Panel de Control
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

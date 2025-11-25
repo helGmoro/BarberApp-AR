@@ -1,8 +1,10 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { PanelLayout } from "@/components/panel/panel-layout"
+import { UpgradePlan } from "@/components/panel/upgrade-plan"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DollarSign, TrendingUp, TrendingDown } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { DollarSign, TrendingUp, TrendingDown, ArrowDownRight, Clock, CheckCircle2, XCircle } from "lucide-react"
 
 export default async function BalancesPage() {
   const supabase = await getSupabaseServerClient()
@@ -12,6 +14,11 @@ export default async function BalancesPage() {
 
   if (!user) {
     redirect("/login")
+  }
+
+  const { data: profile } = await supabase.from("profiles").select("user_type").eq("id", user.id).single()
+  if (profile?.user_type !== "comercio") {
+    redirect("/panel")
   }
 
   const { data: comercio } = await supabase
@@ -24,6 +31,17 @@ export default async function BalancesPage() {
     redirect("/panel/comercio/setup")
   }
 
+  // Verificar si tiene plan premium
+  const isPremium = comercio.subscription_plan === "premium"
+
+  if (!isPremium) {
+    return (
+      <PanelLayout userType="comercio">
+        <UpgradePlan feature="Balances" />
+      </PanelLayout>
+    )
+  }
+
   // Obtener datos del mes actual
   const primerDiaMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
 
@@ -34,12 +52,26 @@ export default async function BalancesPage() {
     .eq("status", "approved")
     .gte("created_at", primerDiaMes)
 
+  // Obtener transferencias del comercio
+  const { data: transferencias } = await supabase
+    .from("transferencias_comercio")
+    .select("*")
+    .eq("comercio_id", comercio.id)
+    .order("created_at", { ascending: false })
+    .limit(20)
+
   const totalIngresos = pagos?.reduce((sum, p) => sum + Number(p.amount), 0) || 0
   const totalComisiones = pagos?.reduce((sum, p) => sum + Number(p.platform_commission_amount), 0) || 0
   const ingresoNeto = totalIngresos - totalComisiones
 
   const senas = pagos?.filter((p) => p.payment_type === "sena").length || 0
   const pagosCompletos = pagos?.filter((p) => p.payment_type === "completo").length || 0
+
+  // Estadísticas de transferencias
+  const transferenciasCompletadas = transferencias?.filter((t) => t.status === "completed").length || 0
+  const totalTransferido = transferencias
+    ?.filter((t) => t.status === "completed")
+    .reduce((sum, t) => sum + Number(t.amount_to_transfer), 0) || 0
 
   return (
     <PanelLayout userType="comercio">
@@ -144,6 +176,85 @@ export default async function BalancesPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Transferencias a tu Cuenta */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Transferencias a tu Cuenta</CardTitle>
+              <Badge variant="outline" className="flex items-center gap-1">
+                <ArrowDownRight className="h-3 w-3" />
+                {transferenciasCompletadas} completadas
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {!transferencias || transferencias.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">
+                No hay transferencias registradas. Las transferencias se crean automáticamente cuando los clientes pagan.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {transferencias.map((transfer) => (
+                  <div
+                    key={transfer.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      {transfer.status === "completed" && (
+                        <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
+                      )}
+                      {transfer.status === "pending" && <Clock className="h-5 w-5 text-yellow-500 flex-shrink-0" />}
+                      {transfer.status === "processing" && (
+                        <Clock className="h-5 w-5 text-blue-500 flex-shrink-0 animate-pulse" />
+                      )}
+                      {transfer.status === "failed" && <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />}
+                      <div>
+                        <p className="font-medium">
+                          ${Number(transfer.amount_to_transfer).toLocaleString("es-AR")}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(transfer.created_at).toLocaleDateString("es-AR", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Badge
+                        variant={
+                          transfer.status === "completed"
+                            ? "default"
+                            : transfer.status === "failed"
+                              ? "destructive"
+                              : "secondary"
+                        }
+                      >
+                        {transfer.status === "completed" && "Transferido"}
+                        {transfer.status === "pending" && "Pendiente"}
+                        {transfer.status === "processing" && "Procesando"}
+                        {transfer.status === "failed" && "Fallido"}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        De ${Number(transfer.amount_total).toLocaleString("es-AR")} (
+                        {transfer.destination_alias || transfer.destination_cvu})
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {transferencias && transferencias.length > 0 && (
+              <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm font-medium mb-1">Total transferido a tu cuenta</p>
+                <p className="text-2xl font-bold">${totalTransferido.toLocaleString("es-AR")}</p>
               </div>
             )}
           </CardContent>

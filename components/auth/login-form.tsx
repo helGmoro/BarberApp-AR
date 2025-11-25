@@ -36,8 +36,22 @@ export function LoginForm() {
       }
 
       if (data.user) {
-        // Redirigir según el tipo de usuario
-        router.push("/panel")
+        // Obtener el tipo de usuario desde la tabla profiles (más confiable que metadata sola)
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("user_type")
+          .eq("id", data.user.id)
+          .single()
+
+        const userType = profile?.user_type || data.user.user_metadata?.user_type || "cliente"
+
+        if (userType === "admin") {
+          router.push("/admin")
+        } else if (userType === "comercio") {
+          router.push("/panel/comercio")
+        } else {
+          router.push("/panel/cliente")
+        }
         router.refresh()
       }
     } catch (err) {

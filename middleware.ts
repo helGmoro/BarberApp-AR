@@ -25,10 +25,16 @@ export async function middleware(request: NextRequest) {
     },
   )
 
-  // Refrescar sesión
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Intentar obtener usuario sin romper si falta refresh token
+  let user = null
+  try {
+    const {
+      data: { user: fetchedUser },
+    } = await supabase.auth.getUser()
+    user = fetchedUser
+  } catch (e) {
+    // Ignoramos errores de refresh_token_not_found para usuarios anónimos
+  }
 
   // Proteger rutas de panel
   if (request.nextUrl.pathname.startsWith("/panel") && !user) {

@@ -19,6 +19,7 @@ export function RegisterForm() {
     email: "",
     password: "",
     confirmPassword: "",
+    userType: "cliente" as "cliente" | "comercio",
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -48,13 +49,16 @@ export function RegisterForm() {
 
       const redirectUrl = process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/panel/perfil`
 
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: redirectUrl,
-        },
-      })
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: redirectUrl,
+            data: {
+              user_type: formData.userType,
+            },
+          },
+        })
 
       if (signUpError) {
         setError(signUpError.message)
@@ -63,6 +67,7 @@ export function RegisterForm() {
 
       if (data.user) {
         setSuccess(true)
+        // Para cuentas de comercio mostramos mensaje especial
         setTimeout(() => {
           router.push("/login")
         }, 2000)
@@ -87,10 +92,43 @@ export function RegisterForm() {
         <Alert className="border-success bg-success/10">
           <CheckCircle2 className="h-4 w-4 text-success" />
           <AlertDescription className="text-success-foreground">
-            Cuenta creada exitosamente. Verificá tu email para confirmar tu cuenta.
+            {formData.userType === "comercio"
+              ? "Cuenta de comercio creada. Verificá tu email e iniciá sesión para configurar tu barbería."
+              : "Cuenta creada exitosamente. Verificá tu email para confirmar tu cuenta."}
           </AlertDescription>
         </Alert>
       )}
+      <div className="space-y-2">
+        <Label>Tipo de Cuenta</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setFormData({ ...formData, userType: "cliente" })}
+            disabled={loading}
+            className={`h-10 rounded-md border text-sm font-medium transition-colors ${
+              formData.userType === "cliente" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"
+            }`}
+          >
+            Cliente
+          </button>
+          <button
+            type="button"
+            onClick={() => setFormData({ ...formData, userType: "comercio" })}
+            disabled={loading}
+            className={`h-10 rounded-md border text-sm font-medium transition-colors ${
+              formData.userType === "comercio" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"
+            }`}
+          >
+            Comercio
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {formData.userType === "cliente"
+            ? "Cuenta para pedir turnos y dejar reseñas."
+            : "Cuenta para gestionar tu barbería y recibir reservas."}
+        </p>
+      </div>
+      
 
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>

@@ -29,7 +29,7 @@ export function ServiciosList({ servicios, comercioId }: { servicios: Servicio[]
 
       router.refresh()
     } catch (error) {
-      console.error("[v0] Error toggling servicio:", error)
+      console.error("[BarberApp] Error toggling servicio:", error)
     } finally {
       setLoading(null)
     }
@@ -45,7 +45,7 @@ export function ServiciosList({ servicios, comercioId }: { servicios: Servicio[]
 
       router.refresh()
     } catch (error) {
-      console.error("[v0] Error deleting servicio:", error)
+      console.error("[BarberApp] Error deleting servicio:", error)
     } finally {
       setLoading(null)
     }

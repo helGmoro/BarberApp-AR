@@ -11,9 +11,11 @@ import {
   LogOut,
   CreditCard,
   DollarSign,
+  Crown,
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 
 interface PanelLayoutProps {
   children: React.ReactNode
@@ -30,28 +32,42 @@ export async function PanelLayout({ children, userType }: PanelLayoutProps) {
     redirect("/login")
   }
 
+  // Obtener plan del comercio si es comercio
+  let isPremium = false
+  if (userType === "comercio") {
+    const { data: comercio } = await supabase
+      .from("comercios")
+      .select("subscription_plan")
+      .eq("owner_id", user.id)
+      .single()
+    isPremium = comercio?.subscription_plan === "premium"
+  }
+
+  const premiumFeatures = ["/panel/comercio/promociones", "/panel/comercio/balances", "/panel/comercio/integracion-mp"]
+
   const menuItems =
     userType === "comercio"
       ? [
-          { href: "/panel/comercio", label: "Dashboard", icon: LayoutDashboard },
-          { href: "/panel/comercio/turnos", label: "Turnos", icon: Calendar },
-          { href: "/panel/comercio/servicios", label: "Servicios", icon: ScissorsIcon },
-          { href: "/panel/comercio/promociones", label: "Promociones", icon: Tag },
-          { href: "/panel/comercio/balances", label: "Balances", icon: DollarSign },
-          { href: "/panel/comercio/integracion-mp", label: "Mercado Pago", icon: CreditCard },
-          { href: "/panel/comercio/suscripcion", label: "Suscripción", icon: Settings },
-          { href: "/panel/comercio/configuracion", label: "Configuración", icon: Settings },
+          { href: "/panel/comercio", label: "Dashboard", icon: LayoutDashboard, premium: false },
+          { href: "/panel/comercio/turnos", label: "Turnos", icon: Calendar, premium: false },
+          { href: "/panel/comercio/servicios", label: "Servicios", icon: ScissorsIcon, premium: false },
+          { href: "/panel/comercio/promociones", label: "Promociones", icon: Tag, premium: true },
+          { href: "/panel/comercio/balances", label: "Balances", icon: DollarSign, premium: true },
+          { href: "/panel/comercio/integracion-mp", label: "Mercado Pago", icon: CreditCard, premium: true },
+          { href: "/panel/comercio/suscripcion", label: "Suscripción", icon: Settings, premium: false },
+          { href: "/panel/comercio/configuracion", label: "Configuración", icon: Settings, premium: false },
         ]
       : [
-          { href: "/panel/cliente", label: "Inicio", icon: LayoutDashboard },
-          { href: "/panel/cliente/mis-turnos", label: "Mis Turnos", icon: Calendar },
-          { href: "/buscar", label: "Buscar Barberías", icon: ScissorsIcon },
+          { href: "/panel/cliente", label: "Inicio", icon: LayoutDashboard, premium: false },
+          { href: "/panel/cliente/mis-turnos", label: "Mis Turnos", icon: Calendar, premium: false },
+          { href: "/panel/perfil", label: "Perfil", icon: Settings, premium: false },
+          { href: "/buscar", label: "Buscar Barberías", icon: ScissorsIcon, premium: false },
         ]
 
   return (
-    <div className="min-h-screen flex">
-      {/* Sidebar */}
-      <aside className="w-64 border-r bg-muted/40 p-6 flex flex-col">
+    <div className="min-h-screen">
+      {/* Sidebar fixed */}
+      <aside className="fixed left-0 top-0 h-screen w-64 border-r bg-muted/40 p-6 flex flex-col">
         <Link href="/" className="flex items-center gap-2 mb-8">
           <Scissors className="h-6 w-6 text-primary" />
           <span className="font-bold text-xl">BarberApp AR</span>
@@ -62,10 +78,13 @@ export async function PanelLayout({ children, userType }: PanelLayoutProps) {
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium group"
             >
               <item.icon className="h-4 w-4" />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.premium && !isPremium && (
+                <Crown className="h-3 w-3 text-primary opacity-60 group-hover:opacity-100" />
+              )}
             </Link>
           ))}
         </nav>
@@ -77,9 +96,8 @@ export async function PanelLayout({ children, userType }: PanelLayoutProps) {
           </Button>
         </form>
       </aside>
-
-      {/* Main content */}
-      <main className="flex-1 p-8 overflow-auto">
+      {/* Main content shifted */}
+      <main className="ml-64 p-8">
         <div className="max-w-7xl mx-auto">{children}</div>
       </main>
     </div>

@@ -34,7 +34,7 @@ export function ComerciosAdminTable({ comercios }: { comercios: Comercio[] }) {
 
       router.refresh()
     } catch (error) {
-      console.error("[v0] Error toggling comercio:", error)
+      console.error("[BarberApp] Error toggling comercio:", error)
     } finally {
       setLoading(null)
     }
@@ -48,7 +48,7 @@ export function ComerciosAdminTable({ comercios }: { comercios: Comercio[] }) {
 
       router.refresh()
     } catch (error) {
-      console.error("[v0] Error verifying comercio:", error)
+      console.error("[BarberApp] Error verifying comercio:", error)
     } finally {
       setLoading(null)
     }

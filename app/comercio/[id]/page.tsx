@@ -69,8 +69,8 @@ export default async function ComercioPage({
             <Link href="/buscar" className="text-sm font-medium hover:text-primary transition-colors">
               Buscar
             </Link>
-            <Link href="/panel" className="text-sm font-medium hover:text-primary transition-colors">
-              Mi Panel
+            <Link href="/panel/perfil" className="text-sm font-medium hover:text-primary transition-colors">
+              Cuenta
             </Link>
           </nav>
         </div>
@@ -93,6 +93,12 @@ export default async function ComercioPage({
               comercioId={comercio.id}
               servicios={comercio.servicios || []}
               businessHours={comercio.business_hours}
+              paymentConfig={{
+                acceptsOnlinePayment: comercio.accepts_online_payment || false,
+                senaPercentage: comercio.sena_percentage || 30,
+                instantPaymentDiscount: comercio.instant_payment_discount || 0,
+                senaExpirationHours: comercio.sena_expiration_hours || 24,
+              }}
             />
           </div>
         </div>

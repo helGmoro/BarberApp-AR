@@ -14,6 +14,11 @@ export default async function MisTurnosPage() {
     redirect("/login")
   }
 
+  const { data: profile } = await supabase.from("profiles").select("user_type").eq("id", user.id).single()
+  if (profile?.user_type !== "cliente") {
+    redirect("/panel")
+  }
+
   const { data: turnos } = await supabase
     .from("turnos")
     .select(`

@@ -15,9 +15,15 @@ interface ReservarTurnoSectionProps {
     duration_minutes: number
   }>
   businessHours: any
+  paymentConfig: {
+    acceptsOnlinePayment: boolean
+    senaPercentage: number
+    instantPaymentDiscount: number
+    senaExpirationHours: number
+  }
 }
 
-export function ReservarTurnoSection({ comercioId, servicios, businessHours }: ReservarTurnoSectionProps) {
+export function ReservarTurnoSection({ comercioId, servicios, businessHours, paymentConfig }: ReservarTurnoSectionProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
@@ -41,6 +47,7 @@ export function ReservarTurnoSection({ comercioId, servicios, businessHours }: R
         comercioId={comercioId}
         servicios={servicios}
         businessHours={businessHours}
+        paymentConfig={paymentConfig}
       />
     </>
   )

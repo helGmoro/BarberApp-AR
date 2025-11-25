@@ -15,6 +15,11 @@ export default async function TurnosPage() {
     redirect("/login")
   }
 
+  const { data: profile } = await supabase.from("profiles").select("user_type").eq("id", user.id).single()
+  if (profile?.user_type !== "comercio") {
+    redirect("/panel")
+  }
+
   const { data: comercio } = await supabase.from("comercios").select("id").eq("owner_id", user.id).single()
 
   if (!comercio) {
@@ -29,15 +34,31 @@ export default async function TurnosPage() {
         name,
         price,
         duration_minutes
+      ),
+      pagos (
+        id,
+        amount,
+        payment_type,
+        status,
+        is_instant_payment
       )
     `)
     .eq("comercio_id", comercio.id)
     .order("appointment_date", { ascending: false })
     .order("appointment_time", { ascending: false })
 
+  const turnosPendientesPago = turnos?.filter((t) => t.status === "pending_sena" && !t.sena_paid).length || 0
   const turnosPendientes = turnos?.filter((t) => t.status === "pending").length || 0
   const turnosConfirmados = turnos?.filter((t) => t.status === "confirmed").length || 0
   const turnosCompletados = turnos?.filter((t) => t.status === "completed").length || 0
+
+  // Filtrar turnos con pago pendiente para dashboard especial
+  const turnosPendientesPagoList = turnos?.filter((t) => 
+    t.status === "pending_sena" && 
+    !t.sena_paid &&
+    t.sena_deadline &&
+    new Date(t.sena_deadline) > new Date()
+  ) || []
 
   return (
     <PanelLayout userType="comercio">
@@ -48,7 +69,15 @@ export default async function TurnosPage() {
         </div>
 
         {/* Resumen */}
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium flex items-center justify-between">
+                Pago Pendiente
+                <Badge variant="destructive">{turnosPendientesPago}</Badge>
+              </CardTitle>
+            </CardHeader>
+          </Card>
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium flex items-center justify-between">
@@ -61,7 +90,7 @@ export default async function TurnosPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium flex items-center justify-between">
                 Confirmados
-                <Badge variant="outline">{turnosConfirmados}</Badge>
+                <Badge variant="default">{turnosConfirmados}</Badge>
               </CardTitle>
             </CardHeader>
           </Card>
@@ -69,11 +98,29 @@ export default async function TurnosPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium flex items-center justify-between">
                 Completados
-                <Badge variant="outline">{turnosCompletados}</Badge>
+                <Badge variant="secondary">{turnosCompletados}</Badge>
               </CardTitle>
             </CardHeader>
           </Card>
         </div>
+
+        {/* Turnos con pago pendiente - Dashboard especial */}
+        {turnosPendientesPagoList.length > 0 && (
+          <Card className="border-destructive">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                ⚠️ Turnos Esperando Pago
+                <Badge variant="destructive">{turnosPendientesPagoList.length}</Badge>
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Estos turnos se cancelarán automáticamente si el cliente no paga antes del límite
+              </p>
+            </CardHeader>
+            <CardContent>
+              <TurnosTable turnos={turnosPendientesPagoList} showPaymentInfo />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tabla de turnos */}
         <Card>
@@ -81,7 +128,7 @@ export default async function TurnosPage() {
             <CardTitle>Todos los Turnos</CardTitle>
           </CardHeader>
           <CardContent>
-            <TurnosTable turnos={turnos || []} />
+            <TurnosTable turnos={turnos || []} showPaymentInfo />
           </CardContent>
         </Card>
       </div>

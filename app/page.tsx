@@ -3,8 +3,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, TrendingUp, CreditCard, BarChart3, Scissors, Users, Clock, Shield, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { DynamicHeader } from "@/components/home/dynamic-header"
+import { getSupabaseServerClient } from "@/lib/supabase/server"
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await getSupabaseServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const isLogged = !!user
   return (
     <div className="min-h-screen">
       {/* Header/Navbar */}
@@ -26,9 +30,15 @@ export default function HomePage() {
               Una plataforma enfocada en lo esencial: turnos claros, pagos seguros vía Mercado Pago y una experiencia premium para tus clientes. Sin exageraciones, construida paso a paso.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="text-lg h-12 px-10" asChild>
-                <Link href="/registro">Crear Cuenta</Link>
-              </Button>
+              {isLogged ? (
+                <Button size="lg" className="text-lg h-12 px-10" asChild>
+                  <Link href="/panel">Ir al Panel</Link>
+                </Button>
+              ) : (
+                <Button size="lg" className="text-lg h-12 px-10" asChild>
+                  <Link href="/registro">Crear Cuenta</Link>
+                </Button>
+              )}
               <Button size="lg" variant="outline" className="text-lg h-12 px-10 bg-transparent border-primary/40 hover:bg-primary/10" asChild>
                 <Link href="#demo">Explorar Demo</Link>
               </Button>
@@ -199,9 +209,15 @@ export default function HomePage() {
                     <span>Gestión básica de servicios</span>
                   </li>
                 </ul>
-                <Button variant="outline" className="w-full bg-transparent" asChild>
-                  <Link href="/registro?plan=free">Comenzar Gratis</Link>
-                </Button>
+                {isLogged ? (
+                  <Button variant="outline" className="w-full bg-transparent" asChild>
+                    <Link href="/panel">Ir al Panel</Link>
+                  </Button>
+                ) : (
+                  <Button variant="outline" className="w-full bg-transparent" asChild>
+                    <Link href="/registro?plan=free">Comenzar Gratis</Link>
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
@@ -257,9 +273,15 @@ export default function HomePage() {
                     <span className="font-medium">Soporte prioritario</span>
                   </li>
                 </ul>
-                <Button className="w-full" asChild>
-                  <Link href="/registro?plan=premium">Activar Premium</Link>
-                </Button>
+                {isLogged ? (
+                  <Button className="w-full" asChild>
+                    <Link href="/panel">Ir al Panel</Link>
+                  </Button>
+                ) : (
+                  <Button className="w-full" asChild>
+                    <Link href="/registro?plan=premium">Activar Premium</Link>
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -349,9 +371,15 @@ export default function HomePage() {
             <CardContent className="py-16 px-6 text-center">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Construyamos tu flujo de trabajo</h2>
               <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">Registrate y probá la versión inicial. Tu feedback ayuda a priorizar las siguientes mejoras.</p>
-              <Button size="lg" className="text-lg h-12 px-8" asChild>
-                <Link href="/registro">Crear Cuenta Gratis</Link>
-              </Button>
+              {isLogged ? (
+                <Button size="lg" className="text-lg h-12 px-8" asChild>
+                  <Link href="/panel">Ir al Panel</Link>
+                </Button>
+              ) : (
+                <Button size="lg" className="text-lg h-12 px-8" asChild>
+                  <Link href="/registro">Crear Cuenta Gratis</Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>

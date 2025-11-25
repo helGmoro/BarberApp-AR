@@ -22,7 +22,15 @@ export default async function BuscarPage({
   let query = supabase
     .from("comercios")
     .select(`
-      *,
+      id,
+      name,
+      description,
+      address,
+      city,
+      logo_url,
+      cover_image_url,
+      subscription_plan,
+      is_verified,
       servicios (
         id,
         name,
@@ -49,7 +57,7 @@ export default async function BuscarPage({
   const { data: comercios, error } = await query
 
   if (error) {
-    console.error("[v0] Error fetching comercios:", error)
+    console.error("[BarberApp] Error fetching comercios:", error)
   }
 
   // Calcular rating promedio para cada comercio
@@ -75,8 +83,8 @@ export default async function BuscarPage({
             <span className="font-bold text-xl">BarberApp AR</span>
           </Link>
           <nav className="flex items-center gap-4">
-            <Link href="/panel" className="text-sm font-medium hover:text-primary transition-colors">
-              Mi Panel
+            <Link href="/panel/perfil" className="text-sm font-medium hover:text-primary transition-colors">
+              Cuenta
             </Link>
           </nav>
         </div>

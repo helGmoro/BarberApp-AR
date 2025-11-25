@@ -16,6 +16,11 @@ export default async function ClienteDashboardPage() {
     redirect("/login")
   }
 
+  const { data: profile } = await supabase.from("profiles").select("user_type").eq("id", user.id).single()
+  if (profile?.user_type !== "cliente") {
+    redirect("/panel")
+  }
+
   // Obtener próximos turnos
   const hoy = new Date().toISOString().split("T")[0]
   const { data: proximosTurnos } = await supabase

@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getSupabaseServerClient } from "@/lib/supabase/server"
 import { createMercadoPagoPreference } from "@/lib/mercadopago"
 import { getPlatformConfig, calculateCommission } from "@/lib/platform-config"
+import { calculatePaymentOptions } from "@/lib/payment-utils"
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,13 +21,46 @@ export async function POST(request: NextRequest) {
     // Verificar que el turno existe y pertenece al usuario
     const { data: turno, error: turnoError } = await supabase
       .from("turnos")
-      .select("*, comercios(name, mercadopago_access_token, mercadopago_collector_id), servicios(name, price)")
+      .select(`
+        *, 
+        comercios(
+          name, 
+          mercadopago_access_token, 
+          mercadopago_collector_id,
+          sena_percentage,
+          instant_payment_discount
+        ), 
+        servicios(name, price)
+      `)
       .eq("id", turnoId)
       .eq("cliente_id", user.id)
       .single()
 
     if (turnoError || !turno) {
       return NextResponse.json({ error: "Turno no encontrado" }, { status: 404 })
+    }
+
+    // Calcular montos según configuración
+    const senaPercentage = turno.comercios.sena_percentage || 30
+    const instantDiscount = turno.instant_discount_applied 
+      ? (turno.comercios.instant_payment_discount || 0)
+      : 0
+      
+    const calculation = calculatePaymentOptions(
+      turno.servicios.price,
+      senaPercentage,
+      instantDiscount
+    )
+
+    // Determinar montos originales y con descuento
+    let originalAmount = amount
+    let discountAmount = 0
+    let isInstantPayment = false
+
+    if (paymentType === 'completo' && turno.instant_discount_applied) {
+      originalAmount = turno.servicios.price
+      discountAmount = calculation.instant.discountAmount
+      isInstantPayment = true
     }
 
     const platformConfig = await getPlatformConfig()
@@ -37,13 +71,22 @@ export async function POST(request: NextRequest) {
       platformConfig,
     )
 
+    // Título descriptivo del pago
+    let paymentTitle = ''
+    if (paymentType === 'sena') {
+      paymentTitle = `Seña (${senaPercentage}%) - ${turno.servicios.name} en ${turno.comercios.name}`
+    } else if (paymentType === 'completo') {
+      paymentTitle = isInstantPayment 
+        ? `Pago completo con descuento - ${turno.servicios.name} en ${turno.comercios.name}`
+        : `Pago completo - ${turno.servicios.name} en ${turno.comercios.name}`
+    } else {
+      paymentTitle = `Pago resto - ${turno.servicios.name} en ${turno.comercios.name}`
+    }
+
     const preference = await createMercadoPagoPreference(
       [
         {
-          title:
-            paymentType === "sena"
-              ? `Seña - ${turno.servicios.name} en ${turno.comercios.name}`
-              : `${turno.servicios.name} en ${turno.comercios.name}`,
+          title: paymentTitle,
           quantity: 1,
           unit_price: amount,
           currency_id: "ARS",
@@ -68,12 +111,15 @@ export async function POST(request: NextRequest) {
       },
     )
 
-    // Crear registro de pago pendiente
+    // Crear registro de pago pendiente con nuevos campos
     const { error: pagoError } = await supabase.from("pagos").insert({
       turno_id: turnoId,
       comercio_id: turno.comercio_id,
       cliente_id: user.id,
       amount,
+      original_amount: originalAmount,
+      discount_amount: discountAmount,
+      is_instant_payment: isInstantPayment,
       payment_type: paymentType,
       payment_method: "mercadopago",
       status: "pending",
@@ -83,6 +129,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (pagoError) {
+      console.error('[BarberApp] Error creating payment record:', pagoError)
       return NextResponse.json({ error: "Error al crear el pago" }, { status: 500 })
     }
 
@@ -91,7 +138,7 @@ export async function POST(request: NextRequest) {
       initPoint: preference.init_point,
     })
   } catch (error) {
-    console.error("[v0] Error creating payment preference:", error)
+    console.error("[BarberApp] Error creating payment preference:", error)
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }

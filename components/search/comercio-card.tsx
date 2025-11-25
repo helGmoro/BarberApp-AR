@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Star, Clock, DollarSign } from "lucide-react"
+import { MapPin, Star, Clock, DollarSign, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -14,6 +14,7 @@ interface ComercioCardProps {
     logo_url: string | null
     cover_image_url: string | null
     subscription_plan: string
+    is_verified?: boolean
     avgRating: number
     reviewCount: number
     servicios: Array<{
@@ -45,9 +46,16 @@ export function ComercioCard({ comercio }: ComercioCardProps) {
               <div className="text-6xl">✂️</div>
             </div>
           )}
-          {comercio.subscription_plan === "premium" && (
-            <Badge className="absolute top-2 right-2 bg-primary">Premium</Badge>
-          )}
+          <div className="absolute top-2 right-2 flex gap-2">
+            {comercio.subscription_plan === "premium" && (
+              <Badge className="bg-primary">Premium</Badge>
+            )}
+            {comercio.is_verified && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <CheckCircle2 className="h-3 w-3 text-success" /> Verificado
+              </Badge>
+            )}
+          </div>
         </div>
 
         <CardContent className="p-4">

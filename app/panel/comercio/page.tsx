@@ -14,6 +14,12 @@ export default async function ComerciodashboardPage() {
     redirect("/login")
   }
 
+  // Verificar rol correcto
+  const { data: profile } = await supabase.from("profiles").select("user_type").eq("id", user.id).single()
+  if (profile?.user_type !== "comercio") {
+    redirect("/panel")
+  }
+
   // Verificar si el usuario tiene un comercio
   const { data: comercio } = await supabase.from("comercios").select("*").eq("owner_id", user.id).single()
 

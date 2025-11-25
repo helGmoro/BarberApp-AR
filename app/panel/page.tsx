@@ -11,11 +11,15 @@ export default async function PanelPage() {
     redirect("/login")
   }
 
-  // Obtener metadata del usuario
-  const userType = user.user_metadata?.user_type || "cliente"
+  // Obtener user_type de la tabla profiles (fuente confiable)
+  const { data: profile } = await supabase.from("profiles").select("user_type").eq("id", user.id).single()
+
+  const userType = profile?.user_type || "cliente"
 
   // Redirigir según el tipo de usuario
-  if (userType === "comercio") {
+  if (userType === "admin") {
+    redirect("/admin")
+  } else if (userType === "comercio") {
     redirect("/panel/comercio")
   } else {
     redirect("/panel/cliente")

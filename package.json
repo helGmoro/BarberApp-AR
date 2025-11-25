@@ -1,5 +1,6 @@
 {
-  "name": "my-v0-project",
+  "name": "barberapp-ar",
+  "description": "BarberApp AR - Plataforma de gestión de turnos para barberías y peluquerías",
   "version": "0.1.0",
   "private": true,
   "scripts": {
