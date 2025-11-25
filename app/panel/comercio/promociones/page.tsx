@@ -3,8 +3,8 @@ import { redirect } from "next/navigation"
 import { PanelLayout } from "@/components/panel/panel-layout"
 import { UpgradePlan } from "@/components/panel/upgrade-plan"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { NuevaPromocionButton } from "@/components/panel/nueva-promocion-button"
+import { PromocionesList } from "@/components/panel/promociones-list"
 
 export default async function PromocionesPage() {
   const supabase = await getSupabaseServerClient()
@@ -42,7 +42,14 @@ export default async function PromocionesPage() {
     )
   }
 
-  // TODO: Implementar listado y gestión de promociones
+  // Obtener servicios y promociones
+  const { data: servicios } = await supabase
+    .from("servicios")
+    .select("id, name")
+    .eq("comercio_id", comercio.id)
+    .eq("is_active", true)
+    .order("name")
+
   const { data: promociones } = await supabase
     .from("promociones")
     .select("*")
@@ -57,10 +64,7 @@ export default async function PromocionesPage() {
             <h1 className="text-3xl font-bold mb-2">Promociones</h1>
             <p className="text-muted-foreground">Creá ofertas especiales para atraer más clientes</p>
           </div>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Nueva Promoción
-          </Button>
+          <NuevaPromocionButton comercioId={comercio.id} servicios={servicios || []} />
         </div>
 
         {!promociones || promociones.length === 0 ? (
@@ -72,25 +76,11 @@ export default async function PromocionesPage() {
               <p className="text-sm text-muted-foreground mb-4">
                 Creá tu primera promoción para atraer más clientes a tu barbería.
               </p>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Crear Primera Promoción
-              </Button>
+              <NuevaPromocionButton comercioId={comercio.id} servicios={servicios || []} />
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
-            {promociones.map((promo: any) => (
-              <Card key={promo.id}>
-                <CardHeader>
-                  <CardTitle>{promo.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{promo.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <PromocionesList promociones={promociones} comercioId={comercio.id} servicios={servicios || []} />
         )}
       </div>
     </PanelLayout>

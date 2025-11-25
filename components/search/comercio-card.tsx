@@ -11,6 +11,7 @@ interface ComercioCardProps {
     description: string | null
     address: string
     city: string
+    province: string
     logo_url: string | null
     cover_image_url: string | null
     subscription_plan: string
@@ -77,10 +78,10 @@ export function ComercioCard({ comercio }: ComercioCardProps) {
             )}
 
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg leading-tight mb-1">{comercio.name}</h3>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-3 w-3" />
-                <span className="truncate">{comercio.city}</span>
+              <h3 className="font-semibold text-lg leading-tight mb-1 truncate">{comercio.name}</h3>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <MapPin className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">{comercio.city}, {comercio.province}</span>
               </div>
             </div>
           </div>

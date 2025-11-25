@@ -5,20 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Search, MapPin } from "lucide-react"
+import { Search } from "lucide-react"
 import { useState } from "react"
-
-const CIUDADES = ["Buenos Aires", "Córdoba", "Rosario", "Mendoza", "La Plata", "Mar del Plata", "Salta", "Tucumán"]
+import { ProvinceCitySelector } from "@/components/ui/province-city-selector"
 
 export function SearchFilters() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "")
+  const [selectedProvincia, setSelectedProvincia] = useState(searchParams.get("provincia") || "")
   const [selectedCiudad, setSelectedCiudad] = useState(searchParams.get("ciudad") || "")
 
   const handleSearch = () => {
     const params = new URLSearchParams()
     if (searchQuery) params.set("q", searchQuery)
+    if (selectedProvincia) params.set("provincia", selectedProvincia)
     if (selectedCiudad) params.set("ciudad", selectedCiudad)
 
     router.push(`/buscar?${params.toString()}`)
@@ -26,6 +27,7 @@ export function SearchFilters() {
 
   const handleReset = () => {
     setSearchQuery("")
+    setSelectedProvincia("")
     setSelectedCiudad("")
     router.push("/buscar")
   }
@@ -52,26 +54,14 @@ export function SearchFilters() {
           </div>
         </div>
 
-        {/* Filtro por ciudad */}
-        <div className="space-y-2">
-          <Label htmlFor="ciudad">Ciudad</Label>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <select
-              id="ciudad"
-              value={selectedCiudad}
-              onChange={(e) => setSelectedCiudad(e.target.value)}
-              className="w-full h-10 rounded-md border border-input bg-background px-9 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <option value="">Todas las ciudades</option>
-              {CIUDADES.map((ciudad) => (
-                <option key={ciudad} value={ciudad}>
-                  {ciudad}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+        {/* Filtro por ubicación */}
+        <ProvinceCitySelector
+          provinciaValue={selectedProvincia}
+          ciudadValue={selectedCiudad}
+          onProvinciaChange={setSelectedProvincia}
+          onCiudadChange={setSelectedCiudad}
+          layout="column"
+        />
 
         {/* Botones */}
         <div className="space-y-2 pt-2">

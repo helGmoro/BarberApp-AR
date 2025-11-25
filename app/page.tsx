@@ -24,10 +24,10 @@ export default async function HomePage() {
               <Sparkles className="h-4 w-4 text-primary" /> Versión Inicial • Creciendo con feedback real
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6 text-balance leading-tight">
-              Gestión moderna y <span className="text-primary">pagos integrados</span> para tu barbería
+              Gestión profesional y <span className="text-primary">pagos seguros</span> para tu barbería
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-8 text-pretty">
-              Una plataforma enfocada en lo esencial: turnos claros, pagos seguros vía Mercado Pago y una experiencia premium para tus clientes. Sin exageraciones, construida paso a paso.
+              Agenda tus turnos, recibí pagos online de forma segura y brindá una experiencia profesional a tus clientes. Todo en una sola plataforma.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {isLogged ? (
@@ -40,11 +40,11 @@ export default async function HomePage() {
                 </Button>
               )}
               <Button size="lg" variant="outline" className="text-lg h-12 px-10 bg-transparent border-primary/40 hover:bg-primary/10" asChild>
-                <Link href="#demo">Explorar Demo</Link>
+                <Link href="/buscar">Explorar Barberías</Link>
               </Button>
             </div>
             <p className="text-sm text-muted-foreground mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2">
-              <span>Integración Mercado Pago</span><span>Seguridad con Supabase</span><span>Configurable en minutos</span>
+              <span>Pagos seguros</span><span>Fácil de configurar</span><span>Soporte en español</span>
             </p>
           </div>
         </div>
@@ -65,21 +65,21 @@ export default async function HomePage() {
               <CardContent className="pt-5">
                 <CreditCard className="h-6 w-6 text-primary mb-3" />
                 <h3 className="text-sm font-semibold mb-1">Pagos Seguros</h3>
-                <p className="text-xs text-muted-foreground">Integración nativa con Mercado Pago y separación automática de comisión.</p>
+                <p className="text-xs text-muted-foreground">Cobros directos a tu cuenta con separación automática de comisiones.</p>
               </CardContent>
             </Card>
             <Card className="bg-card/60 border-border/50">
               <CardContent className="pt-5">
                 <Calendar className="h-6 w-6 text-primary mb-3" />
-                <h3 className="text-sm font-semibold mb-1">Turnos Claros</h3>
-                <p className="text-xs text-muted-foreground">Agenda enfocada en rapidez y confiabilidad para tu equipo.</p>
+                <h3 className="text-sm font-semibold mb-1">Gestión Simple</h3>
+                <p className="text-xs text-muted-foreground">Agenda rápida y confiable diseñada para el día a día de tu negocio.</p>
               </CardContent>
             </Card>
             <Card className="bg-card/60 border-border/50">
               <CardContent className="pt-5">
                 <TrendingUp className="h-6 w-6 text-primary mb-3" />
-                <h3 className="text-sm font-semibold mb-1">Listo para crecer</h3>
-                <p className="text-xs text-muted-foreground">Base técnica moderna (Next.js + Supabase) preparada para nuevas funciones.</p>
+                <h3 className="text-sm font-semibold mb-1">Escalable</h3>
+                <p className="text-xs text-muted-foreground">Plataforma preparada para crecer junto con tu negocio.</p>
               </CardContent>
             </Card>
           </div>
@@ -114,8 +114,7 @@ export default async function HomePage() {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Pagos Directos</h3>
                 <p className="text-muted-foreground">
-                  Recibí los pagos directamente en tu cuenta de Mercado Pago. La plataforma solo retiene su comisión
-                  automáticamente
+                  Recibí los pagos directamente en tu cuenta. La plataforma retiene automáticamente su comisión de forma transparente
                 </p>
               </CardContent>
             </Card>
@@ -264,7 +263,7 @@ export default async function HomePage() {
                     <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <div className="h-2 w-2 rounded-full bg-primary" />
                     </div>
-                    <span className="font-medium">Integración Mercado Pago</span>
+                    <span className="font-medium">Pagos online integrados</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -288,7 +287,7 @@ export default async function HomePage() {
 
           <div className="text-center mt-12 space-y-2">
             <p className="text-sm text-muted-foreground">
-              Comisiones configurables por admin: Desde 3% en señas • Desde 5% en pagos completos
+              Comisiones: Desde 3% en señas • Desde 5% en pagos completos (Abierto a variaciones)
             </p>
             <p className="text-xs text-muted-foreground">Los pagos van directamente a tu cuenta de Mercado Pago</p>
           </div>
@@ -309,8 +308,8 @@ export default async function HomePage() {
                 <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl font-bold text-primary">1</span>
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Vinculá tu Mercado Pago</h3>
-                <p className="text-sm text-muted-foreground">Conectá tu cuenta en minutos desde el panel de comercio</p>
+                <h3 className="text-lg font-semibold mb-2">Vinculá tu cuenta</h3>
+                <p className="text-sm text-muted-foreground">Configurá tus datos de cobro en minutos desde el panel</p>
               </CardContent>
             </Card>
 
@@ -410,8 +409,8 @@ export default async function HomePage() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="#demo" className="hover:text-foreground transition-colors">
-                    Demo
+                  <Link href="/buscar" className="hover:text-foreground transition-colors">
+                    Explorar
                   </Link>
                 </li>
               </ul>

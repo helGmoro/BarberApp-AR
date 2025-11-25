@@ -5,6 +5,7 @@ import { Scissors } from "lucide-react"
 import Link from "next/link"
 
 interface SearchParams {
+  provincia?: string
   ciudad?: string
   servicio?: string
   q?: string
@@ -27,6 +28,7 @@ export default async function BuscarPage({
       description,
       address,
       city,
+      province,
       logo_url,
       cover_image_url,
       subscription_plan,
@@ -43,6 +45,11 @@ export default async function BuscarPage({
     `)
     .eq("is_active", true)
     .order("created_at", { ascending: false })
+
+  // Filtrar por provincia
+  if (params.provincia) {
+    query = query.eq("province", params.provincia)
+  }
 
   // Filtrar por ciudad
   if (params.ciudad) {

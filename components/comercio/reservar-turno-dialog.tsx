@@ -7,12 +7,17 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
 import { useState, useEffect } from "react"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
+import { AlertCircle, CheckCircle2, Loader2, CalendarIcon } from "lucide-react"
 import { PaymentOptionsSelector } from "./payment-options-selector"
+import { cn } from "@/lib/utils"
 
 interface ReservarTurnoDialogProps {
   open: boolean
@@ -51,6 +56,9 @@ export function ReservarTurnoDialog({ open, onOpenChange, comercioId, servicios,
   const [availableSlots, setAvailableSlots] = useState<string[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'instant' | 'deposit' | 'local' | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  const [loadingProfile, setLoadingProfile] = useState(true)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   const [formData, setFormData] = useState({
     servicioId: servicios[0]?.id || "",
@@ -62,7 +70,45 @@ export function ReservarTurnoDialog({ open, onOpenChange, comercioId, servicios,
     notas: "",
   })
 
-  // Generar slots disponibles cuando cambia la fecha o servicio
+  // Cargar datos del perfil del usuario
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      setLoadingProfile(true)
+      try {
+        const supabase = getSupabaseBrowserClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (user) {
+          setIsLoggedIn(true)
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name, phone, email")
+            .eq("id", user.id)
+            .single()
+          
+          if (profile) {
+            setFormData(prev => ({
+              ...prev,
+              nombre: profile.full_name || "",
+              telefono: profile.phone || "",
+              email: profile.email || user.email || "",
+            }))
+          }
+        } else {
+          setIsLoggedIn(false)
+        }
+      } catch (err) {
+        console.error("Error cargando perfil:", err)
+        setIsLoggedIn(false)
+      } finally {
+        setLoadingProfile(false)
+      }
+    }
+
+    if (open) {
+      loadUserProfile()
+    }
+  }, [open])  // Generar slots disponibles cuando cambia la fecha o servicio
   useEffect(() => {
     if (formData.fecha && formData.servicioId) {
       generateAvailableSlots()
@@ -231,14 +277,14 @@ export function ReservarTurnoDialog({ open, onOpenChange, comercioId, servicios,
         setSuccess(true)
         setTimeout(() => {
           onOpenChange(false)
-          router.push(`/panel/mis-turnos?pagar=${turno.id}`)
+          router.push(`/panel/cliente/mis-turnos?pagar=${turno.id}`)
         }, 1500)
       } else {
         // Si es pago local, ir directo a mis turnos
         setSuccess(true)
         setTimeout(() => {
           onOpenChange(false)
-          router.push("/panel/mis-turnos")
+          router.push("/panel/cliente/mis-turnos")
         }, 2000)
       }
     } catch (err) {
@@ -256,6 +302,36 @@ export function ReservarTurnoDialog({ open, onOpenChange, comercioId, servicios,
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!loadingProfile && !isLoggedIn && (
+            <Alert className="border-orange-500 bg-orange-500/10">
+              <AlertCircle className="h-4 w-4 text-orange-500" />
+              <AlertDescription className="text-orange-900 dark:text-orange-100">
+                <p className="font-semibold mb-2">Necesitás una cuenta para reservar</p>
+                <p className="text-sm mb-3">
+                  Para completar la reserva, debes iniciar sesión o crear una cuenta gratuita.
+                </p>
+                <div className="flex gap-2">
+                  <Button 
+                    type="button" 
+                    size="sm" 
+                    onClick={() => router.push("/login")}
+                    className="bg-orange-600 hover:bg-orange-700"
+                  >
+                    Iniciar Sesión
+                  </Button>
+                  <Button 
+                    type="button" 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => router.push("/registro")}
+                  >
+                    Crear Cuenta
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
@@ -268,6 +344,18 @@ export function ReservarTurnoDialog({ open, onOpenChange, comercioId, servicios,
               <CheckCircle2 className="h-4 w-4 text-success" />
               <AlertDescription className="text-success-foreground">
                 Turno reservado exitosamente. Redirigiendo...
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {!loadingProfile && (!formData.nombre || !formData.telefono) && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Para una mejor experiencia, completa tu perfil con tu nombre y teléfono en{" "}
+                <a href="/panel/perfil" className="underline font-medium">
+                  Mi Perfil
+                </a>
               </AlertDescription>
             </Alert>
           )}
@@ -289,21 +377,44 @@ export function ReservarTurnoDialog({ open, onOpenChange, comercioId, servicios,
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="fecha">Fecha</Label>
-              <Input
-                id="fecha"
-                type="date"
-                value={formData.fecha}
-                onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
-                min={new Date().toISOString().split("T")[0]}
-                required
-              />
+              <Label>Fecha del turno</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP", { locale: es }) : "Seleccionar fecha"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      setSelectedDate(date)
+                      if (date) {
+                        const year = date.getFullYear()
+                        const month = String(date.getMonth() + 1).padStart(2, '0')
+                        const day = String(date.getDate()).padStart(2, '0')
+                        setFormData({ ...formData, fecha: `${year}-${month}-${day}`, hora: "" })
+                      }
+                    }}
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="hora">Hora</Label>
+              <Label htmlFor="hora">Hora disponible</Label>
               {loadingSlots ? (
                 <div className="h-10 flex items-center justify-center border rounded-md">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -325,17 +436,12 @@ export function ReservarTurnoDialog({ open, onOpenChange, comercioId, servicios,
                 </select>
               ) : formData.fecha ? (
                 <div className="h-10 flex items-center justify-center border rounded-md text-sm text-muted-foreground">
-                  Sin horarios disponibles
+                  No hay horarios disponibles para esta fecha
                 </div>
               ) : (
-                <Input
-                  id="hora"
-                  type="time"
-                  value={formData.hora}
-                  onChange={(e) => setFormData({ ...formData, hora: e.target.value })}
-                  disabled
-                  placeholder="Seleccione fecha"
-                />
+                <div className="h-10 flex items-center justify-center border rounded-md text-sm text-muted-foreground">
+                  Seleccione una fecha primero
+                </div>
               )}
             </div>
           </div>

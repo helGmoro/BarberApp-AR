@@ -11,8 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import { AlertCircle, Loader2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-
-const CIUDADES = ["Buenos Aires", "Córdoba", "Rosario", "Mendoza", "La Plata", "Mar del Plata", "Salta", "Tucumán"]
+import { ProvinceCitySelector } from "@/components/ui/province-city-selector"
 
 export function ComercioSetupForm({ userId }: { userId: string }) {
   const router = useRouter()
@@ -23,8 +22,8 @@ export function ComercioSetupForm({ userId }: { userId: string }) {
     name: "",
     description: "",
     address: "",
-    city: "Buenos Aires",
-    province: "Buenos Aires",
+    city: "",
+    province: "",
     phone: "",
     email: "",
   })
@@ -97,36 +96,14 @@ export function ComercioSetupForm({ userId }: { userId: string }) {
         />
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="city">Ciudad *</Label>
-          <select
-            id="city"
-            value={formData.city}
-            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-            className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-            required
-            disabled={loading}
-          >
-            {CIUDADES.map((ciudad) => (
-              <option key={ciudad} value={ciudad}>
-                {ciudad}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="province">Provincia *</Label>
-          <Input
-            id="province"
-            value={formData.province}
-            onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-            required
-            disabled={loading}
-          />
-        </div>
-      </div>
+      <ProvinceCitySelector
+        provinciaValue={formData.province}
+        ciudadValue={formData.city}
+        onProvinciaChange={(value) => setFormData({ ...formData, province: value })}
+        onCiudadChange={(value) => setFormData({ ...formData, city: value })}
+        required
+        disabled={loading}
+      />
 
       <div className="space-y-2">
         <Label htmlFor="address">Dirección *</Label>

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, Loader2, CheckCircle2 } from "lucide-react"
+import { AlertCircle, Loader2, CheckCircle2, Pencil } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface ProfileDataFormProps {
@@ -33,6 +33,7 @@ export function ProfileDataForm({ profile }: ProfileDataFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,6 +51,7 @@ export function ProfileDataForm({ profile }: ProfileDataFormProps) {
         return
       }
       setSaved(true)
+      setIsEditing(false)
       router.refresh()
     } catch (e) {
       setError("Error al guardar cambios")
@@ -71,34 +73,91 @@ export function ProfileDataForm({ profile }: ProfileDataFormProps) {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          {saved && (
-            <Alert>
-              <CheckCircle2 className="h-4 w-4" />
-              <AlertDescription>Datos guardados correctamente.</AlertDescription>
+          {saved && !isEditing && (
+            <Alert className="border-success bg-success/10">
+              <CheckCircle2 className="h-4 w-4 text-success" />
+              <AlertDescription className="text-success-foreground">Datos guardados correctamente</AlertDescription>
             </Alert>
           )}
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label htmlFor="firstName">Nombre</Label>
-              <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Juan" />
+              <Input 
+                id="firstName" 
+                value={firstName} 
+                onChange={(e) => setFirstName(e.target.value)} 
+                placeholder="Juan"
+                disabled={!isEditing}
+              />
             </div>
             <div className="space-y-1">
               <Label htmlFor="lastName">Apellido</Label>
-              <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Pérez" />
+              <Input 
+                id="lastName" 
+                value={lastName} 
+                onChange={(e) => setLastName(e.target.value)} 
+                placeholder="Pérez"
+                disabled={!isEditing}
+              />
             </div>
           </div>
           <div className="space-y-1">
             <Label htmlFor="phone">Teléfono</Label>
-            <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="11 5555 5555" />
+            <Input 
+              id="phone" 
+              value={phone} 
+              onChange={(e) => setPhone(e.target.value)} 
+              placeholder="11 5555 5555"
+              disabled={!isEditing}
+            />
           </div>
           <div className="space-y-1">
             <Label htmlFor="dni">DNI</Label>
-            <Input id="dni" value={dni} onChange={(e) => setDni(e.target.value)} placeholder="12345678" />
+            <Input 
+              id="dni" 
+              value={dni} 
+              onChange={(e) => setDni(e.target.value)} 
+              placeholder="12345678"
+              disabled={!isEditing}
+            />
           </div>
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Guardar Cambios
-          </Button>
+          
+          {isEditing ? (
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setIsEditing(false)
+                  setFirstName(profile.first_name || "")
+                  setLastName(profile.last_name || "")
+                  setPhone(profile.phone || "")
+                  setDni(profile.dni || "")
+                }}
+                disabled={loading}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Guardar Cambios
+              </Button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setIsEditing(true)
+                setSaved(false)
+              }}
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              Editar Datos
+            </Button>
+          )}
         </form>
       </CardContent>
     </Card>

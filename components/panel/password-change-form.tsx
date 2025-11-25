@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
+import { validatePassword } from "@/lib/validation"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,14 +18,19 @@ export function PasswordChangeForm() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  const handleChange = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    setSuccess(false)
-    if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres")
+    setSaved(false)
+
+    // Validar nueva contraseña
+    const passwordValidation = validatePassword(password)
+    if (!passwordValidation.valid) {
+      setError(passwordValidation.error || 'Contraseña inválida')
       return
     }
+
+    // Verificar que las contraseñas coincidan
     if (password !== confirm) {
       setError("Las contraseñas no coinciden")
       return

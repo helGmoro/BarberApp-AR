@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, CheckCircle2, Info } from "lucide-react"
+import { Loader2, CheckCircle2, Info, Pencil } from "lucide-react"
 
 interface CVUAliasFormProps {
   initialCVU?: string
@@ -21,6 +21,8 @@ export function CVUAliasForm({ initialCVU, initialAlias }: CVUAliasFormProps) {
   const [loading, setLoading] = useState(false)
   const [cvu, setCVU] = useState(initialCVU || "")
   const [alias, setAlias] = useState(initialAlias || "")
+  const [isEditing, setIsEditing] = useState(!initialCVU && !initialAlias)
+  const [savedSuccessfully, setSavedSuccessfully] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,6 +64,8 @@ export function CVUAliasForm({ initialCVU, initialAlias }: CVUAliasFormProps) {
         description: "Tu cuenta de Mercado Pago fue vinculada correctamente",
       })
 
+      setSavedSuccessfully(true)
+      setIsEditing(false)
       router.refresh()
     } catch (error) {
       toast({
@@ -84,6 +88,15 @@ export function CVUAliasForm({ initialCVU, initialAlias }: CVUAliasFormProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {savedSuccessfully && !isEditing && (
+            <Alert className="border-success bg-success/10">
+              <CheckCircle2 className="h-4 w-4 text-success" />
+              <AlertDescription className="text-success-foreground">
+                Configuración de Mercado Pago guardada exitosamente
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Información de ayuda */}
           <Alert>
             <Info className="h-4 w-4" />
@@ -107,7 +120,7 @@ export function CVUAliasForm({ initialCVU, initialAlias }: CVUAliasFormProps) {
                 setCVU(value)
               }}
               maxLength={22}
-              disabled={loading}
+              disabled={loading || !isEditing}
             />
             <p className="text-sm text-muted-foreground">
               {cvu.length}/22 dígitos {cvu.length === 22 && <CheckCircle2 className="inline h-4 w-4 text-green-500" />}
@@ -133,7 +146,7 @@ export function CVUAliasForm({ initialCVU, initialAlias }: CVUAliasFormProps) {
               placeholder="TU.ALIAS.MP"
               value={alias}
               onChange={(e) => setAlias(e.target.value.toLowerCase())}
-              disabled={loading}
+              disabled={loading || !isEditing}
             />
             <p className="text-sm text-muted-foreground">
               Ejemplo: barberia.centro, peluqueria.norte, etc.
@@ -148,17 +161,49 @@ export function CVUAliasForm({ initialCVU, initialAlias }: CVUAliasFormProps) {
             </AlertDescription>
           </Alert>
 
-          {/* Botón */}
-          <Button type="submit" className="w-full" disabled={loading || (!cvu && !alias)}>
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Guardando...
-              </>
-            ) : (
-              "Guardar Configuración"
-            )}
-          </Button>
+          {/* Botones */}
+          {isEditing ? (
+            <div className="flex gap-3">
+              {(initialCVU || initialAlias) && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setIsEditing(false)
+                    setCVU(initialCVU || "")
+                    setAlias(initialAlias || "")
+                  }}
+                  disabled={loading}
+                >
+                  Cancelar
+                </Button>
+              )}
+              <Button type="submit" className="flex-1" disabled={loading || (!cvu && !alias)}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  "Guardar Configuración"
+                )}
+              </Button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setIsEditing(true)
+                setSavedSuccessfully(false)
+              }}
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              Editar Configuración
+            </Button>
+          )}
         </CardContent>
       </Card>
     </form>

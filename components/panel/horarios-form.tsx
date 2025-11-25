@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, Loader2, CheckCircle2 } from "lucide-react"
+import { AlertCircle, Loader2, CheckCircle2, Pencil } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface HorariosFormProps {
@@ -41,6 +41,7 @@ export function HorariosForm({ comercioId, businessHours: initialHours }: Horari
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
 
   const handleDayChange = (dia: string, field: string, value: any) => {
     setHorarios({
@@ -102,6 +103,7 @@ export function HorariosForm({ comercioId, businessHours: initialHours }: Horari
         return
       }
       setSaved(true)
+      setIsEditing(false)
       router.refresh()
     } catch (e) {
       setError("Error al guardar horarios")
@@ -123,10 +125,12 @@ export function HorariosForm({ comercioId, businessHours: initialHours }: Horari
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          {saved && (
-            <Alert>
-              <CheckCircle2 className="h-4 w-4" />
-              <AlertDescription>Horarios guardados correctamente.</AlertDescription>
+          {saved && !isEditing && (
+            <Alert className="border-success bg-success/10">
+              <CheckCircle2 className="h-4 w-4 text-success" />
+              <AlertDescription className="text-success-foreground">
+                Horarios guardados correctamente
+              </AlertDescription>
             </Alert>
           )}
           {DIAS.map((dia) => {
@@ -140,6 +144,7 @@ export function HorariosForm({ comercioId, businessHours: initialHours }: Horari
                     <Switch
                       checked={!config.closed}
                       onCheckedChange={(checked) => handleDayChange(dia, "closed", !checked)}
+                      disabled={!isEditing}
                     />
                   </div>
                 </div>
@@ -155,6 +160,7 @@ export function HorariosForm({ comercioId, businessHours: initialHours }: Horari
                           type="time"
                           value={config.open}
                           onChange={(e) => handleDayChange(dia, "open", e.target.value)}
+                          disabled={!isEditing}
                         />
                       </div>
                       <div className="space-y-1">
@@ -166,6 +172,7 @@ export function HorariosForm({ comercioId, businessHours: initialHours }: Horari
                           type="time"
                           value={config.close}
                           onChange={(e) => handleDayChange(dia, "close", e.target.value)}
+                          disabled={!isEditing}
                         />
                       </div>
                     </div>
@@ -179,6 +186,7 @@ export function HorariosForm({ comercioId, businessHours: initialHours }: Horari
                               value={breakItem.start}
                               onChange={(e) => handleBreakChange(dia, idx, "start", e.target.value)}
                               className="text-sm"
+                              disabled={!isEditing}
                             />
                             <div className="flex gap-2">
                               <Input
@@ -186,6 +194,7 @@ export function HorariosForm({ comercioId, businessHours: initialHours }: Horari
                                 value={breakItem.end}
                                 onChange={(e) => handleBreakChange(dia, idx, "end", e.target.value)}
                                 className="text-sm"
+                                disabled={!isEditing}
                               />
                               <Button
                                 type="button"
@@ -193,6 +202,7 @@ export function HorariosForm({ comercioId, businessHours: initialHours }: Horari
                                 size="sm"
                                 onClick={() => removeBreak(dia, idx)}
                                 className="px-2"
+                                disabled={!isEditing}
                               >
                                 ✕
                               </Button>
@@ -201,7 +211,7 @@ export function HorariosForm({ comercioId, businessHours: initialHours }: Horari
                         ))}
                       </div>
                     )}
-                    <Button type="button" variant="outline" size="sm" onClick={() => addBreak(dia)} className="w-full">
+                    <Button type="button" variant="outline" size="sm" onClick={() => addBreak(dia)} className="w-full" disabled={!isEditing}>
                       + Agregar Descanso
                     </Button>
                   </>
@@ -209,10 +219,39 @@ export function HorariosForm({ comercioId, businessHours: initialHours }: Horari
               </div>
             )
           })}
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Guardar Horarios
-          </Button>
+          {isEditing ? (
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setIsEditing(false)
+                  setHorarios(initialHours)
+                }}
+                disabled={loading}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Guardar Horarios
+              </Button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setIsEditing(true)
+                setSaved(false)
+              }}
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              Editar Horarios
+            </Button>
+          )}
         </form>
       </CardContent>
     </Card>

@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, Info, Percent, Clock, Zap } from "lucide-react"
+import { Loader2, Info, Percent, Clock, Zap, CheckCircle2, Pencil } from "lucide-react"
 
 interface PaymentConfigFormProps {
   initialConfig: {
@@ -24,6 +24,8 @@ export function PaymentConfigForm({ initialConfig }: PaymentConfigFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [savedSuccessfully, setSavedSuccessfully] = useState(false)
 
   const [acceptsOnline, setAcceptsOnline] = useState(initialConfig.acceptsOnlinePayment)
   const [senaPercentage, setSenaPercentage] = useState(initialConfig.senaPercentage)
@@ -74,6 +76,8 @@ export function PaymentConfigForm({ initialConfig }: PaymentConfigFormProps) {
         description: "Los cambios se aplicarán a las nuevas reservas",
       })
 
+      setSavedSuccessfully(true)
+      setIsEditing(false)
       router.refresh()
     } catch (error) {
       toast({
@@ -88,6 +92,15 @@ export function PaymentConfigForm({ initialConfig }: PaymentConfigFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {savedSuccessfully && !isEditing && (
+        <Alert className="border-success bg-success/10">
+          <CheckCircle2 className="h-4 w-4 text-success" />
+          <AlertDescription className="text-success-foreground">
+            Configuración guardada exitosamente
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Activar pagos online */}
       <Card>
         <CardHeader>
@@ -104,7 +117,7 @@ export function PaymentConfigForm({ initialConfig }: PaymentConfigFormProps) {
                 Los clientes podrán pagar servicios directamente en la app
               </p>
             </div>
-            <Switch checked={acceptsOnline} onCheckedChange={setAcceptsOnline} />
+            <Switch checked={acceptsOnline} onCheckedChange={setAcceptsOnline} disabled={!isEditing} />
           </div>
 
           {acceptsOnline && (
@@ -141,7 +154,7 @@ export function PaymentConfigForm({ initialConfig }: PaymentConfigFormProps) {
                   max="100"
                   value={senaPercentage}
                   onChange={(e) => setSenaPercentage(Number(e.target.value))}
-                  disabled={loading}
+                  disabled={loading || !isEditing}
                 />
                 <p className="text-sm text-muted-foreground">
                   Ejemplo: Si un servicio cuesta $10.000 y la seña es {senaPercentage}%, el cliente paga $
@@ -161,7 +174,7 @@ export function PaymentConfigForm({ initialConfig }: PaymentConfigFormProps) {
                   max="72"
                   value={expirationHours}
                   onChange={(e) => setExpirationHours(Number(e.target.value))}
-                  disabled={loading}
+                  disabled={loading || !isEditing}
                 />
                 <p className="text-sm text-muted-foreground">
                   El turno se cancela automáticamente si no se paga la seña en {expirationHours} horas
@@ -200,7 +213,7 @@ export function PaymentConfigForm({ initialConfig }: PaymentConfigFormProps) {
                   step="0.5"
                   value={instantDiscount}
                   onChange={(e) => setInstantDiscount(Number(e.target.value))}
-                  disabled={loading}
+                  disabled={loading || !isEditing}
                 />
                 <p className="text-sm text-muted-foreground">
                   {instantDiscount > 0 ? (
@@ -252,17 +265,49 @@ export function PaymentConfigForm({ initialConfig }: PaymentConfigFormProps) {
         </>
       )}
 
-      {/* Botón guardar */}
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Guardando...
-          </>
-        ) : (
-          "Guardar Configuración"
-        )}
-      </Button>
+      {/* Botones */}
+      {isEditing ? (
+        <div className="flex gap-3">
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="flex-1" 
+            onClick={() => {
+              setIsEditing(false)
+              setAcceptsOnline(initialConfig.acceptsOnlinePayment)
+              setSenaPercentage(initialConfig.senaPercentage)
+              setInstantDiscount(initialConfig.instantPaymentDiscount)
+              setExpirationHours(initialConfig.senaExpirationHours)
+            }}
+            disabled={loading}
+          >
+            Cancelar
+          </Button>
+          <Button type="submit" className="flex-1" disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Guardando...
+              </>
+            ) : (
+              "Guardar Configuración"
+            )}
+          </Button>
+        </div>
+      ) : (
+        <Button 
+          type="button" 
+          variant="outline" 
+          className="w-full" 
+          onClick={() => {
+            setIsEditing(true)
+            setSavedSuccessfully(false)
+          }}
+        >
+          <Pencil className="mr-2 h-4 w-4" />
+          Editar Configuración
+        </Button>
+      )}
     </form>
   )
 }

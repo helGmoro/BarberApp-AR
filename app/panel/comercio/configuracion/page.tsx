@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator"
 import { EstadoComercio } from "@/components/panel/estado-comercio"
 import { HorariosForm } from "@/components/panel/horarios-form"
 import { PaymentConfigForm } from "@/components/panel/payment-config-form"
+import { ComercioEditForm } from "@/components/panel/comercio-edit-form"
 import { Suspense } from "react"
 
 export default async function ConfiguracionComercioPage() {
@@ -56,36 +57,21 @@ export default async function ConfiguracionComercioPage() {
         <Card>
           <CardHeader>
             <CardTitle>Información Básica</CardTitle>
+            <CardDescription>Datos de contacto y ubicación de tu comercio</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2 text-sm">
-            <div>
-              <p className="text-muted-foreground">Nombre</p>
-              <p className="font-medium">{comercio.name}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Ciudad</p>
-              <p className="font-medium">{comercio.city}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Dirección</p>
-              <p className="font-medium">{comercio.address}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Teléfono</p>
-              <p className="font-medium">{comercio.phone}</p>
-            </div>
-            {comercio.email && (
-              <div>
-                <p className="text-muted-foreground">Email</p>
-                <p className="font-medium">{comercio.email}</p>
-              </div>
-            )}
-            <div>
-              <p className="text-muted-foreground">Plan</p>
-              <Badge className={comercio.subscription_plan === "premium" ? "bg-primary" : ""}>
-                {comercio.subscription_plan}
-              </Badge>
-            </div>
+          <CardContent>
+            <ComercioEditForm comercio={comercio} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Plan de Suscripción</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Badge className={comercio.subscription_plan === "premium" ? "bg-primary" : ""}>
+              {comercio.subscription_plan}
+            </Badge>
           </CardContent>
         </Card>
 

@@ -12,6 +12,7 @@ import {
   CreditCard,
   DollarSign,
   Crown,
+  User,
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -56,6 +57,7 @@ export async function PanelLayout({ children, userType }: PanelLayoutProps) {
           { href: "/panel/comercio/integracion-mp", label: "Mercado Pago", icon: CreditCard, premium: true },
           { href: "/panel/comercio/suscripcion", label: "Suscripción", icon: Settings, premium: false },
           { href: "/panel/comercio/configuracion", label: "Configuración", icon: Settings, premium: false },
+          { href: "/panel/comercio/mi-perfil", label: "Mi Perfil", icon: User, premium: false },
         ]
       : [
           { href: "/panel/cliente", label: "Inicio", icon: LayoutDashboard, premium: false },

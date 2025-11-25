@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
+import { validateEmail, validatePassword } from "@/lib/validation"
 import { AlertCircle, Loader2, CheckCircle2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
@@ -31,15 +32,25 @@ export function RegisterForm() {
     setError(null)
     setSuccess(false)
 
-    // Validaciones
-    if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden")
+    // Validar email
+    const emailValidation = validateEmail(formData.email)
+    if (!emailValidation.valid) {
+      setError(emailValidation.error || 'Email inválido')
       setLoading(false)
       return
     }
 
-    if (formData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres")
+    // Validar contraseña
+    const passwordValidation = validatePassword(formData.password)
+    if (!passwordValidation.valid) {
+      setError(passwordValidation.error || 'Contraseña inválida')
+      setLoading(false)
+      return
+    }
+
+    // Validar que las contraseñas coincidan
+    if (formData.password !== formData.confirmPassword) {
+      setError("Las contraseñas no coinciden")
       setLoading(false)
       return
     }

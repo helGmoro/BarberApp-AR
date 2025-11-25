@@ -26,11 +26,11 @@ export default async function PerfilPage() {
   const esCliente = profile?.user_type === "cliente"
   const esComercio = profile?.user_type === "comercio"
 
-  let comercio: { id: string; is_active: boolean; is_verified: boolean } | null = null
+  let comercio: { id: string; name: string; is_active: boolean; is_verified: boolean; verification_requested_at?: string | null } | null = null
   if (esComercio) {
     const { data: comercioRow } = await supabase
       .from("comercios")
-      .select("id, is_active, is_verified")
+      .select("id, name, is_active, is_verified, verification_requested_at")
       .eq("owner_id", profile.id)
       .single()
     if (comercioRow) {

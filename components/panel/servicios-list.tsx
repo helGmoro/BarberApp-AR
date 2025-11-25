@@ -7,6 +7,7 @@ import { Clock, DollarSign, Edit, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { EditarServicioDialog } from "./editar-servicio-dialog"
 
 interface Servicio {
   id: string
@@ -20,6 +21,7 @@ interface Servicio {
 export function ServiciosList({ servicios, comercioId }: { servicios: Servicio[]; comercioId: string }) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
+  const [editingServicio, setEditingServicio] = useState<Servicio | null>(null)
 
   const handleToggleActive = async (servicioId: string, currentState: boolean) => {
     setLoading(servicioId)
@@ -90,7 +92,12 @@ export function ServiciosList({ servicios, comercioId }: { servicios: Servicio[]
                 disabled={loading === servicio.id}
               />
             </div>
-            <Button size="sm" variant="outline" disabled={loading === servicio.id}>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              disabled={loading === servicio.id}
+              onClick={() => setEditingServicio(servicio)}
+            >
               <Edit className="h-4 w-4" />
             </Button>
             <Button
@@ -104,6 +111,14 @@ export function ServiciosList({ servicios, comercioId }: { servicios: Servicio[]
           </div>
         </div>
       ))}
+
+      {editingServicio && (
+        <EditarServicioDialog
+          open={!!editingServicio}
+          onOpenChange={(open) => !open && setEditingServicio(null)}
+          servicio={editingServicio}
+        />
+      )}
     </div>
   )
 }
