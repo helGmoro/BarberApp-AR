@@ -65,11 +65,14 @@ export function MisTurnosTable({ turnos }: { turnos: Turno[] }) {
     }
   }, [pagarTurnoId, turnos])
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, turno: Turno) => {
     const variants: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
       pending: { label: "Pendiente", variant: "outline" },
       pending_sena: { label: "Pago Pendiente", variant: "outline" },
-      confirmed: { label: "Confirmado", variant: "default" },
+      confirmed: { 
+        label: turno.sena_paid || turno.full_payment_paid ? "Confirmado" : "Confirmado (Pago Local)", 
+        variant: "default" 
+      },
       in_progress: { label: "En Progreso", variant: "secondary" },
       completed: { label: "Completado", variant: "secondary" },
       cancelled: { label: "Cancelado", variant: "destructive" },
@@ -107,7 +110,7 @@ export function MisTurnosTable({ turnos }: { turnos: Turno[] }) {
                     {turno.comercios.address}, {turno.comercios.city}
                   </p>
                 </div>
-                {getStatusBadge(turno.status)}
+                {getStatusBadge(turno.status, turno)}
               </div>
 
               <div className="grid md:grid-cols-2 gap-4 mb-4">

@@ -88,13 +88,12 @@ export function PagoDialog({ open, onOpenChange, turno }: PagoDialogProps) {
         return
       }
 
-      // En producción, redirigir a Mercado Pago
-      // window.location.href = data.initPoint
-
-      // Por ahora, simular pago exitoso
-      alert("Redirigiendo a Mercado Pago...")
-      onOpenChange(false)
-      window.location.reload() // Recargar para ver cambios
+      // Redirigir a Mercado Pago
+      if (data.initPoint) {
+        window.location.href = data.initPoint
+      } else {
+        setError("No se pudo generar el enlace de pago")
+      }
     } catch (err) {
       setError("Error al procesar el pago. Por favor, intentá nuevamente.")
     } finally {

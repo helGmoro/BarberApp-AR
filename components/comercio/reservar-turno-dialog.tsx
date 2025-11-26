@@ -448,6 +448,7 @@ export function ReservarTurnoDialog({ open, onOpenChange, comercioId, servicios,
                   <Calendar
                     mode="single"
                     selected={selectedDate}
+                    defaultMonth={selectedDate}
                     onSelect={(date) => {
                       setSelectedDate(date)
                       if (date) {
