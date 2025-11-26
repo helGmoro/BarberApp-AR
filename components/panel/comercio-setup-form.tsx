@@ -99,8 +99,12 @@ export function ComercioSetupForm({ userId }: { userId: string }) {
       <ProvinceCitySelector
         provinciaValue={formData.province}
         ciudadValue={formData.city}
-        onProvinciaChange={(value) => setFormData({ ...formData, province: value })}
-        onCiudadChange={(value) => setFormData({ ...formData, city: value })}
+        onProvinciaChange={(value) =>
+          setFormData((prev) => ({ ...prev, province: value }))
+        }
+        onCiudadChange={(value) =>
+          setFormData((prev) => ({ ...prev, city: value }))
+        }
         required
         disabled={loading}
       />

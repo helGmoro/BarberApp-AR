@@ -15,12 +15,55 @@ export async function createMercadoPagoPreference(
     pending: string
   },
 ) {
-  // En producción, esto se conectaría con la API de Mercado Pago
-  // Por ahora, retornamos un objeto simulado para desarrollo
+  const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN
+
+  if (!accessToken) {
+    throw new Error("MERCADOPAGO_ACCESS_TOKEN no está configurado")
+  }
+
+  // Preparar datos de la preferencia
+  const preferenceData: any = {
+    items: items.map(item => ({
+      title: item.title,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      currency_id: item.currency_id || "ARS",
+    })),
+    back_urls: backUrls,
+    auto_return: "approved",
+    external_reference: metadata.turnoId || "",
+    metadata: metadata,
+    notification_url: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL}/api/pagos/webhook`,
+  }
+
+  // Si hay split payment (comercio con MP conectado)
+  if (metadata.splitPayment) {
+    preferenceData.marketplace_fee = metadata.splitPayment.applicationFee
+    preferenceData.marketplace = "BARBERAPP"
+  }
+
+  // Llamar a la API de Mercado Pago
+  const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(preferenceData),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    console.error("[MercadoPago] Error creating preference:", errorData)
+    throw new Error(`Error al crear preferencia de pago: ${response.status}`)
+  }
+
+  const preference = await response.json()
+  
   return {
-    id: `pref_${Date.now()}`,
-    init_point: "/panel/pago/simulado",
-    sandbox_init_point: "/panel/pago/simulado",
+    id: preference.id,
+    init_point: preference.init_point,
+    sandbox_init_point: preference.sandbox_init_point,
   }
 }
 

@@ -1,9 +1,17 @@
 import { LoginForm } from "@/components/auth/login-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Scissors } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { CheckCircle2, Scissors } from "lucide-react"
 import Link from "next/link"
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ deleted?: string }>
+}) {
+  const params = await searchParams
+  const accountDeleted = params?.deleted === "true"
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 via-background to-background">
       <div className="w-full max-w-md">
@@ -14,6 +22,15 @@ export default function LoginPage() {
           </Link>
           <p className="text-muted-foreground">Bienvenido de vuelta</p>
         </div>
+
+        {accountDeleted && (
+          <Alert className="mb-4 border-green-500 bg-green-500/10">
+            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <AlertDescription className="text-green-900 dark:text-green-100">
+              Tu cuenta ha sido eliminada exitosamente. Esperamos verte de nuevo pronto.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Card>
           <CardHeader>

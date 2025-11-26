@@ -58,7 +58,7 @@ export function PanelLayout({ children, userType, isPremium = false }: PanelLayo
       : [
           { href: "/panel/cliente", label: "Inicio", icon: LayoutDashboard, premium: false },
           { href: "/panel/cliente/mis-turnos", label: "Mis Turnos", icon: Calendar, premium: false },
-          { href: "/panel/perfil", label: "Perfil", icon: Settings, premium: false },
+          { href: "/panel/cliente/perfil", label: "Perfil", icon: Settings, premium: false },
           { href: "/buscar", label: "Buscar Barberías", icon: ScissorsIcon, premium: false },
         ]
 

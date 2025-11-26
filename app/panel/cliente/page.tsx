@@ -95,7 +95,7 @@ export default async function ClienteDashboardPage() {
                       </div>
                     </div>
                     <Button variant="outline" asChild>
-                      <Link href={`/comercio/${turno.comercios.id}`}>Ver Detalles</Link>
+                      <Link href={`/panel/cliente/mis-turnos/${turno.id}`}>Ver Detalles</Link>
                     </Button>
                   </div>
                 ))}
