@@ -45,10 +45,10 @@ export function DynamicHeader() {
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href={user ? "/panel" : "/"} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <Scissors className="h-6 w-6" />
-          <span className="font-bold text-xl">BarberApp AR</span>
+      <div className="container mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
+        <Link href={user ? "/panel" : "/"} className="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity">
+          <Scissors className="h-5 w-5 sm:h-6 sm:w-6" />
+          <span className="font-bold text-lg sm:text-xl">BarberApp AR</span>
         </Link>
         
         {!user && (

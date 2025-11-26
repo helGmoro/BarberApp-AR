@@ -72,7 +72,18 @@ export function RegisterForm() {
         })
 
       if (signUpError) {
-        setError(signUpError.message)
+        console.error('[BarberApp] Register error:', signUpError)
+        
+        // Mensajes de error en español
+        if (signUpError.message.includes('already registered') || signUpError.message.includes('already exists')) {
+          setError("Este email ya está registrado. ¿Querés iniciar sesión?")
+        } else if (signUpError.message.includes('Password')) {
+          setError("La contraseña debe tener al menos 8 caracteres, con letras y números.")
+        } else if (signUpError.message.includes('email')) {
+          setError("El formato del email no es válido. Verificá que esté bien escrito.")
+        } else {
+          setError("No se pudo crear la cuenta. Por favor verificá los datos e intentá nuevamente.")
+        }
         return
       }
 
@@ -83,8 +94,14 @@ export function RegisterForm() {
           router.push("/login")
         }, 2000)
       }
-    } catch (err) {
-      setError("Error al crear la cuenta. Por favor, intentá nuevamente.")
+    } catch (err: any) {
+      console.error('[BarberApp] Register exception:', err)
+      
+      if (err?.message?.includes('network') || err?.message?.includes('fetch')) {
+        setError("Error de conexión. Verificá tu internet e intentá nuevamente.")
+      } else {
+        setError("Ocurrió un error al crear la cuenta. Por favor intentá nuevamente.")
+      }
     } finally {
       setLoading(false)
     }

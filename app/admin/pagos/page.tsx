@@ -1,6 +1,6 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { AdminLayout } from "@/components/admin/admin-layout"
+import { AdminLayoutWrapper as AdminLayout } from "@/components/admin/admin-layout-wrapper"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp } from "lucide-react"

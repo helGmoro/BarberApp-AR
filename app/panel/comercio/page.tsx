@@ -1,6 +1,6 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { PanelLayout } from "@/components/panel/panel-layout"
+import { PanelLayoutWrapper as PanelLayout } from "@/components/panel/panel-layout-wrapper"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DollarSign, Calendar, TrendingUp, Users } from "lucide-react"
 
@@ -16,8 +16,14 @@ export default async function ComerciodashboardPage() {
 
   // Verificar rol correcto
   const { data: profile } = await supabase.from("profiles").select("user_type").eq("id", user.id).single()
-  if (profile?.user_type !== "comercio") {
-    redirect("/panel")
+  
+  // Redirigir según tipo de usuario si no es comercio
+  if (profile?.user_type === "admin") {
+    redirect("/admin")
+  } else if (profile?.user_type === "cliente") {
+    redirect("/panel/cliente")
+  } else if (profile?.user_type !== "comercio") {
+    redirect("/login")
   }
 
   // Verificar si el usuario tiene un comercio

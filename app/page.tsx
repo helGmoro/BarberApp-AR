@@ -15,35 +15,35 @@ export default async function HomePage() {
       <DynamicHeader />
 
       {/* Hero Section */}
-      <section className="relative py-24 md:py-36 overflow-hidden">
+      <section className="relative py-16 sm:py-24 md:py-36 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,oklch(0.25_0_0)_0%,transparent_60%)]" />
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-secondary/40" />
         <div className="container mx-auto px-4 relative">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold tracking-wide mb-6 border border-border/60">
-              <Sparkles className="h-4 w-4 text-primary" /> Versión Inicial • Creciendo con feedback real
+            <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold tracking-wide mb-4 sm:mb-6 border border-border/60">
+              <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-primary" /> Versión Inicial • Creciendo con feedback real
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-balance leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-balance leading-tight">
               Gestión profesional y <span className="text-primary">pagos seguros</span> para tu barbería
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 text-pretty">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 text-pretty">
               Agenda tus turnos, recibí pagos online de forma segura y brindá una experiencia profesional a tus clientes. Todo en una sola plataforma.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               {isLogged ? (
-                <Button size="lg" className="text-lg h-12 px-10" asChild>
+                <Button size="lg" className="text-base sm:text-lg h-11 sm:h-12 px-8 sm:px-10" asChild>
                   <Link href="/panel">Ir al Panel</Link>
                 </Button>
               ) : (
-                <Button size="lg" className="text-lg h-12 px-10" asChild>
+                <Button size="lg" className="text-base sm:text-lg h-11 sm:h-12 px-8 sm:px-10" asChild>
                   <Link href="/registro">Crear Cuenta</Link>
                 </Button>
               )}
-              <Button size="lg" variant="outline" className="text-lg h-12 px-10 bg-transparent border-primary/40 hover:bg-primary/10" asChild>
+              <Button size="lg" variant="outline" className="text-base sm:text-lg h-11 sm:h-12 px-8 sm:px-10 bg-transparent border-primary/40 hover:bg-primary/10" asChild>
                 <Link href="/buscar">Explorar Barberías</Link>
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-4 sm:mt-6 flex flex-wrap justify-center gap-x-3 sm:gap-x-4 gap-y-2">
               <span>Pagos seguros</span><span>Fácil de configurar</span><span>Soporte en español</span>
             </p>
           </div>
@@ -51,9 +51,9 @@ export default async function HomePage() {
       </section>
 
       {/* Trust / Why Section */}
-      <section className="py-14 border-y bg-secondary/30 backdrop-blur-sm">
+      <section className="py-10 sm:py-14 border-y bg-secondary/30 backdrop-blur-sm">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             <Card className="bg-card/60 border-border/50">
               <CardContent className="pt-5">
                 <Shield className="h-6 w-6 text-primary mb-3" />
@@ -87,14 +87,14 @@ export default async function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section id="caracteristicas" className="py-20 md:py-32">
+      <section id="caracteristicas" className="py-16 sm:py-20 md:py-32">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Funcionalidades clave</h2>
-            <p className="text-lg text-muted-foreground">Comenzamos con lo esencial y añadimos mejoras sobre feedback real.</p>
+          <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Funcionalidades clave</h2>
+            <p className="text-base sm:text-lg text-muted-foreground">Comenzamos con lo esencial y añadimos mejoras sobre feedback real.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <Card>
               <CardContent className="pt-6">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
@@ -171,14 +171,14 @@ export default async function HomePage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="planes" className="py-20 md:py-32 bg-secondary/20">
+      <section id="planes" className="py-16 sm:py-20 md:py-32 bg-secondary/20">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Precios simples desde el inicio</h2>
-            <p className="text-lg text-muted-foreground">Comenzá gratis. Solo pagás cuando realmente necesitás más capacidad.</p>
+          <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Precios simples desde el inicio</h2>
+            <p className="text-base sm:text-lg text-muted-foreground">Comenzá gratis. Solo pagás cuando realmente necesitás más capacidad.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center mb-6">

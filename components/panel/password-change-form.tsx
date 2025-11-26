@@ -21,7 +21,7 @@ export function PasswordChangeForm() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    setSaved(false)
+    setSuccess(false)
 
     // Validar nueva contraseña
     const passwordValidation = validatePassword(password)
@@ -58,7 +58,7 @@ export function PasswordChangeForm() {
         <CardTitle>Cambiar Contraseña</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleChange} className="space-y-4">
+        <form onSubmit={handleSave} className="space-y-4">
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />

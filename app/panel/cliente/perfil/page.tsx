@@ -1,6 +1,6 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { PanelLayout } from "@/components/panel/panel-layout"
+import { PanelLayoutWrapper as PanelLayout } from "@/components/panel/panel-layout-wrapper"
 import { ConvertToComercio } from "@/components/panel/convert-to-comercio"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"

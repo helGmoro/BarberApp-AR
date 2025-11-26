@@ -1,6 +1,6 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { PanelLayout } from "@/components/panel/panel-layout"
+import { PanelLayoutWrapper as PanelLayout } from "@/components/panel/panel-layout-wrapper"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar, MapPin, Clock } from "lucide-react"
@@ -17,8 +17,14 @@ export default async function ClienteDashboardPage() {
   }
 
   const { data: profile } = await supabase.from("profiles").select("user_type").eq("id", user.id).single()
-  if (profile?.user_type !== "cliente") {
-    redirect("/panel")
+  
+  // Redirigir según tipo de usuario si no es cliente
+  if (profile?.user_type === "admin") {
+    redirect("/admin")
+  } else if (profile?.user_type === "comercio") {
+    redirect("/panel/comercio")
+  } else if (profile?.user_type !== "cliente") {
+    redirect("/login")
   }
 
   // Obtener próximos turnos

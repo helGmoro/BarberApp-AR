@@ -60,10 +60,10 @@ export function ComercioCard({ comercio }: ComercioCardProps) {
         </div>
 
         <CardContent className="p-4">
-          <div className="flex items-start gap-3 mb-3">
+          <div className="flex items-start gap-2 sm:gap-3 mb-3">
             {/* Logo */}
             {comercio.logo_url ? (
-              <div className="relative h-12 w-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-background shadow-sm">
+              <div className="relative h-10 w-10 sm:h-12 sm:w-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-background shadow-sm">
                 <Image
                   src={comercio.logo_url || "/placeholder.svg"}
                   alt={comercio.name}
@@ -72,14 +72,14 @@ export function ComercioCard({ comercio }: ComercioCardProps) {
                 />
               </div>
             ) : (
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <span className="text-xl">✂️</span>
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <span className="text-lg sm:text-xl">✂️</span>
               </div>
             )}
 
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg leading-tight mb-1 truncate">{comercio.name}</h3>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <h3 className="font-semibold text-base sm:text-lg leading-tight mb-1 truncate">{comercio.name}</h3>
+              <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                 <MapPin className="h-3 w-3 flex-shrink-0" />
                 <span className="truncate">{comercio.city}, {comercio.province}</span>
               </div>

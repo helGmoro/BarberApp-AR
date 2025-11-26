@@ -84,28 +84,28 @@ export default async function BuscarPage({
     <div className="min-h-screen">
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Scissors className="h-6 w-6" />
-            <span className="font-bold text-xl">BarberApp AR</span>
+        <div className="container mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
+            <Scissors className="h-5 w-5 sm:h-6 sm:w-6" />
+            <span className="font-bold text-lg sm:text-xl">BarberApp AR</span>
           </Link>
-          <nav className="flex items-center gap-4">
-            <Link href="/panel/perfil" className="text-sm font-medium hover:text-primary transition-colors">
+          <nav className="flex items-center gap-3 sm:gap-4">
+            <Link href="/panel/perfil" className="text-xs sm:text-sm font-medium hover:text-primary transition-colors">
               Cuenta
             </Link>
           </nav>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Encontrá tu barbería perfecta</h1>
-          <p className="text-muted-foreground">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Encontrá tu barbería perfecta</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             {comerciosConRating.length} barberías y peluquerías disponibles en Argentina
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-6">
+        <div className="grid lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Filtros */}
           <div className="lg:col-span-1">
             <SearchFilters />
@@ -118,7 +118,7 @@ export default async function BuscarPage({
                 <p className="text-muted-foreground">No se encontraron barberías con los filtros seleccionados</p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {comerciosConRating.map((comercio) => (
                   <ComercioCard key={comercio.id} comercio={comercio} />
                 ))}

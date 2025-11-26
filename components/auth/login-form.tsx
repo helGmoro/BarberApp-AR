@@ -23,15 +23,45 @@ export function LoginForm() {
     setLoading(true)
     setError(null)
 
+    // Validaciones en español
+    if (!email || !email.trim()) {
+      setError("Por favor ingresá tu email")
+      setLoading(false)
+      return
+    }
+
+    if (!email.includes('@')) {
+      setError("Por favor ingresá un email válido")
+      setLoading(false)
+      return
+    }
+
+    if (!password || password.length < 6) {
+      setError("Por favor ingresá tu contraseña")
+      setLoading(false)
+      return
+    }
+
     try {
       const supabase = getSupabaseBrowserClient()
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       })
 
       if (signInError) {
-        setError(signInError.message)
+        console.error('[BarberApp] Login error:', signInError)
+        
+        // Mensajes de error en español
+        if (signInError.message.includes('Invalid login credentials')) {
+          setError("Email o contraseña incorrectos. Por favor verificá tus datos.")
+        } else if (signInError.message.includes('Email not confirmed')) {
+          setError("Tu email aún no fue confirmado. Revisá tu casilla de correo.")
+        } else if (signInError.message.includes('User not found')) {
+          setError("No existe una cuenta con este email. ¿Querés registrarte?")
+        } else {
+          setError("Error al iniciar sesión. Por favor intentá nuevamente.")
+        }
         return
       }
 
@@ -54,8 +84,14 @@ export function LoginForm() {
         }
         router.refresh()
       }
-    } catch (err) {
-      setError("Error al iniciar sesión. Por favor, intentá nuevamente.")
+    } catch (err: any) {
+      console.error('[BarberApp] Login exception:', err)
+      
+      if (err?.message?.includes('network') || err?.message?.includes('fetch')) {
+        setError("Error de conexión. Verificá tu internet e intentá nuevamente.")
+      } else {
+        setError("Ocurrió un error inesperado. Por favor intentá nuevamente.")
+      }
     } finally {
       setLoading(false)
     }

@@ -100,104 +100,193 @@ export function TurnosTable({ turnos, showPaymentInfo = false }: TurnosTableProp
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b">
-            <th className="text-left py-3 px-4 font-medium">Fecha</th>
-            <th className="text-left py-3 px-4 font-medium">Hora</th>
-            <th className="text-left py-3 px-4 font-medium">Cliente</th>
-            <th className="text-left py-3 px-4 font-medium">Servicio</th>
-            <th className="text-left py-3 px-4 font-medium">Estado</th>
-            {showPaymentInfo && <th className="text-left py-3 px-4 font-medium">Pago</th>}
-            <th className="text-left py-3 px-4 font-medium">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {turnos.map((turno) => {
-            const needsPayment = turno.status === 'pending_sena' && !turno.sena_paid
-            const isExpired = turno.sena_deadline ? isSenaExpired(turno.sena_deadline) : false
-            const timeRemaining = turno.sena_deadline && !isExpired ? formatTimeRemaining(turno.sena_deadline) : null
-            
-            return (
-            <tr key={turno.id} className={`border-b hover:bg-muted/50 ${needsPayment && !isExpired ? 'bg-destructive/5' : ''}`}>
-              <td className="py-3 px-4">{turno.appointment_date}</td>
-              <td className="py-3 px-4">{turno.appointment_time}</td>
-              <td className="py-3 px-4">
-                <div>
-                  <p className="font-medium">{turno.client_name}</p>
-                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+    <>
+      {/* Vista Desktop - Tabla */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b">
+              <th className="text-left py-3 px-4 font-medium">Fecha</th>
+              <th className="text-left py-3 px-4 font-medium">Hora</th>
+              <th className="text-left py-3 px-4 font-medium">Cliente</th>
+              <th className="text-left py-3 px-4 font-medium">Servicio</th>
+              <th className="text-left py-3 px-4 font-medium">Estado</th>
+              {showPaymentInfo && <th className="text-left py-3 px-4 font-medium">Pago</th>}
+              <th className="text-left py-3 px-4 font-medium">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {turnos.map((turno) => {
+              const needsPayment = turno.status === 'pending_sena' && !turno.sena_paid
+              const isExpired = turno.sena_deadline ? isSenaExpired(turno.sena_deadline) : false
+              const timeRemaining = turno.sena_deadline && !isExpired ? formatTimeRemaining(turno.sena_deadline) : null
+              
+              return (
+              <tr key={turno.id} className={`border-b hover:bg-muted/50 ${needsPayment && !isExpired ? 'bg-destructive/5' : ''}`}>
+                <td className="py-3 px-4">{turno.appointment_date}</td>
+                <td className="py-3 px-4">{turno.appointment_time}</td>
+                <td className="py-3 px-4">
+                  <div>
+                    <p className="font-medium">{turno.client_name}</p>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Phone className="h-3 w-3" />
+                      {turno.client_phone}
+                    </p>
+                  </div>
+                </td>
+                <td className="py-3 px-4">
+                  <div>
+                    <p className="font-medium">{turno.servicios.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      ${turno.servicios.price.toLocaleString("es-AR")} • {turno.servicios.duration_minutes} min
+                    </p>
+                  </div>
+                </td>
+                <td className="py-3 px-4">{getStatusBadge(turno.status)}</td>
+                {showPaymentInfo && (
+                  <td className="py-3 px-4">
+                    <div className="space-y-1">
+                      {getPaymentBadge(turno)}
+                      {needsPayment && !isExpired && timeRemaining && (
+                        <div className="flex items-center gap-1 text-xs text-destructive">
+                          <Clock className="h-3 w-3" />
+                          {timeRemaining}
+                        </div>
+                      )}
+                      {needsPayment && isExpired && (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <AlertCircle className="h-3 w-3" />
+                          Expirado
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                )}
+                <td className="py-3 px-4">
+                  <div className="flex items-center gap-2">
+                    {turno.status === "pending" && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleUpdateStatus(turno.id, "confirmed")}
+                          disabled={loading === turno.id}
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleUpdateStatus(turno.id, "cancelled")}
+                          disabled={loading === turno.id}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                    {turno.status === "confirmed" && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleUpdateStatus(turno.id, "completed")}
+                        disabled={loading === turno.id}
+                      >
+                        Completar
+                      </Button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Vista Mobile - Cards */}
+      <div className="md:hidden space-y-3">
+        {turnos.map((turno) => {
+          const needsPayment = turno.status === 'pending_sena' && !turno.sena_paid
+          const isExpired = turno.sena_deadline ? isSenaExpired(turno.sena_deadline) : false
+          const timeRemaining = turno.sena_deadline && !isExpired ? formatTimeRemaining(turno.sena_deadline) : null
+
+          return (
+            <div key={turno.id} className={`border rounded-lg p-3 ${needsPayment && !isExpired ? 'bg-destructive/5 border-destructive/20' : ''}`}>
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <p className="font-medium text-sm">{turno.client_name}</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                     <Phone className="h-3 w-3" />
                     {turno.client_phone}
                   </p>
                 </div>
-              </td>
-              <td className="py-3 px-4">
-                <div>
-                  <p className="font-medium">{turno.servicios.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    ${turno.servicios.price.toLocaleString("es-AR")} • {turno.servicios.duration_minutes} min
-                  </p>
+                {getStatusBadge(turno.status)}
+              </div>
+
+              <div className="space-y-2 text-sm mb-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Fecha:</span>
+                  <span className="font-medium">{turno.appointment_date} {turno.appointment_time}</span>
                 </div>
-              </td>
-              <td className="py-3 px-4">{getStatusBadge(turno.status)}</td>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Servicio:</span>
+                  <span className="font-medium">{turno.servicios.name}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Precio:</span>
+                  <span className="font-medium">${turno.servicios.price.toLocaleString("es-AR")}</span>
+                </div>
+              </div>
+
               {showPaymentInfo && (
-                <td className="py-3 px-4">
-                  <div className="space-y-1">
-                    {getPaymentBadge(turno)}
-                    {needsPayment && !isExpired && timeRemaining && (
-                      <div className="flex items-center gap-1 text-xs text-destructive">
-                        <Clock className="h-3 w-3" />
-                        {timeRemaining}
-                      </div>
-                    )}
-                    {needsPayment && isExpired && (
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <AlertCircle className="h-3 w-3" />
-                        Expirado
-                      </div>
-                    )}
-                  </div>
-                </td>
-              )}
-              <td className="py-3 px-4">
-                <div className="flex items-center gap-2">
-                  {turno.status === "pending" && (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleUpdateStatus(turno.id, "confirmed")}
-                        disabled={loading === turno.id}
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleUpdateStatus(turno.id, "cancelled")}
-                        disabled={loading === turno.id}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </>
+                <div className="mb-3 pb-3 border-t pt-3">
+                  {getPaymentBadge(turno)}
+                  {needsPayment && !isExpired && timeRemaining && (
+                    <div className="flex items-center gap-1 text-xs text-destructive mt-2">
+                      <Clock className="h-3 w-3" />
+                      {timeRemaining}
+                    </div>
                   )}
-                  {turno.status === "confirmed" && (
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                {turno.status === "pending" && (
+                  <>
                     <Button
                       size="sm"
-                      onClick={() => handleUpdateStatus(turno.id, "completed")}
+                      variant="outline"
+                      onClick={() => handleUpdateStatus(turno.id, "confirmed")}
                       disabled={loading === turno.id}
+                      className="flex-1"
                     >
-                      Completar
+                      <Check className="h-4 w-4 mr-1" /> Confirmar
                     </Button>
-                  )}
-                </div>
-              </td>
-            </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleUpdateStatus(turno.id, "cancelled")}
+                      disabled={loading === turno.id}
+                      className="flex-1"
+                    >
+                      <X className="h-4 w-4 mr-1" /> Cancelar
+                    </Button>
+                  </>
+                )}
+                {turno.status === "confirmed" && (
+                  <Button
+                    size="sm"
+                    onClick={() => handleUpdateStatus(turno.id, "completed")}
+                    disabled={loading === turno.id}
+                    className="w-full"
+                  >
+                    Completar
+                  </Button>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }

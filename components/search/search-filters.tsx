@@ -33,9 +33,9 @@ export function SearchFilters() {
   }
 
   return (
-    <Card className="sticky top-20">
+    <Card className="lg:sticky lg:top-20">
       <CardHeader>
-        <CardTitle className="text-lg">Filtros de Búsqueda</CardTitle>
+        <CardTitle className="text-base sm:text-lg">Filtros de Búsqueda</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Búsqueda por nombre */}

@@ -200,9 +200,40 @@ export function ReservarTurnoDialog({ open, onOpenChange, comercioId, servicios,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Validaciones en español
+    if (!formData.servicioId) {
+      setError("Por favor seleccioná un servicio")
+      return
+    }
+    
+    if (!formData.fecha) {
+      setError("Por favor seleccioná una fecha para el turno")
+      return
+    }
+    
+    if (!formData.hora) {
+      setError("Por favor seleccioná un horario disponible")
+      return
+    }
+    
+    if (!formData.nombre || formData.nombre.trim().length < 2) {
+      setError("Por favor ingresá tu nombre completo")
+      return
+    }
+    
+    if (!formData.telefono || formData.telefono.trim().length < 8) {
+      setError("Por favor ingresá un número de teléfono válido")
+      return
+    }
+    
+    if (!formData.email || !formData.email.includes('@')) {
+      setError("Por favor ingresá un email válido")
+      return
+    }
+    
     // Validar que se seleccionó método de pago si acepta pagos online
     if (paymentConfig.acceptsOnlinePayment && !selectedPaymentMethod) {
-      setError("Debes seleccionar una opción de pago")
+      setError("Por favor seleccioná una opción de pago")
       return
     }
     
@@ -268,7 +299,18 @@ export function ReservarTurnoDialog({ open, onOpenChange, comercioId, servicios,
       }).select().single()
 
       if (insertError) {
-        setError(insertError.message)
+        console.error('[BarberApp] Error creating turno:', insertError)
+        
+        // Mensajes de error en español según el tipo
+        if (insertError.code === '23505') {
+          setError("Ya existe un turno para este horario. Por favor seleccioná otro.")
+        } else if (insertError.message.includes('date')) {
+          setError("La fecha seleccionada no es válida. Por favor elegí otra fecha.")
+        } else if (insertError.message.includes('time')) {
+          setError("El horario seleccionado no es válido. Por favor elegí otro horario.")
+        } else {
+          setError("No se pudo crear el turno. Por favor verificá los datos e intentá nuevamente.")
+        }
         return
       }
 
@@ -287,8 +329,17 @@ export function ReservarTurnoDialog({ open, onOpenChange, comercioId, servicios,
           router.push("/panel/cliente/mis-turnos")
         }, 2000)
       }
-    } catch (err) {
-      setError("Error al crear el turno. Por favor, intentá nuevamente.")
+    } catch (err: any) {
+      console.error('[BarberApp] Error al reservar turno:', err)
+      
+      // Mensajes de error específicos en español
+      if (err?.message?.includes('auth')) {
+        setError("Tu sesión expiró. Por favor iniciá sesión nuevamente.")
+      } else if (err?.message?.includes('network') || err?.message?.includes('fetch')) {
+        setError("Error de conexión. Verificá tu internet e intentá nuevamente.")
+      } else {
+        setError("Ocurrió un error al crear el turno. Por favor intentá nuevamente.")
+      }
     } finally {
       setLoading(false)
     }
@@ -496,9 +547,11 @@ export function ReservarTurnoDialog({ open, onOpenChange, comercioId, servicios,
               <PaymentOptionsSelector
                 servicePrice={servicios.find(s => s.id === formData.servicioId)?.price || 0}
                 senaPercentage={paymentConfig.senaPercentage}
-                instantDiscount={paymentConfig.instantPaymentDiscount}
-                expirationHours={paymentConfig.senaExpirationHours}
-                onSelect={setSelectedPaymentMethod}
+                instantDiscountPercentage={paymentConfig.instantPaymentDiscount}
+                senaExpirationHours={paymentConfig.senaExpirationHours}
+                selectedOption={selectedPaymentMethod}
+                onSelectOption={setSelectedPaymentMethod}
+                acceptsOnlinePayment={paymentConfig.acceptsOnlinePayment}
               />
             </div>
           )}

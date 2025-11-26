@@ -52,6 +52,14 @@ export default async function ComercioPage({
     notFound()
   }
 
+  // DEBUG: Ver valores de configuración de pago
+  console.log('[BarberApp] Comercio payment config:', {
+    accepts_online_payment: comercio.accepts_online_payment,
+    sena_percentage: comercio.sena_percentage,
+    instant_payment_discount: comercio.instant_payment_discount,
+    sena_expiration_hours: comercio.sena_expiration_hours,
+  })
+
   // Calcular rating promedio
   const reviews = comercio.reviews || []
   const avgRating = reviews.length > 0 ? reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length : 0
@@ -60,16 +68,16 @@ export default async function ComercioPage({
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Scissors className="h-6 w-6" />
-            <span className="font-bold text-xl">BarberApp AR</span>
+        <div className="container mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
+            <Scissors className="h-5 w-5 sm:h-6 sm:w-6" />
+            <span className="font-bold text-lg sm:text-xl">BarberApp AR</span>
           </Link>
-          <nav className="flex items-center gap-4">
-            <Link href="/buscar" className="text-sm font-medium hover:text-primary transition-colors">
+          <nav className="flex items-center gap-2 sm:gap-4">
+            <Link href="/buscar" className="text-xs sm:text-sm font-medium hover:text-primary transition-colors">
               Buscar
             </Link>
-            <Link href="/panel/perfil" className="text-sm font-medium hover:text-primary transition-colors">
+            <Link href="/panel/perfil" className="text-xs sm:text-sm font-medium hover:text-primary transition-colors">
               Cuenta
             </Link>
           </nav>
@@ -79,10 +87,10 @@ export default async function ComercioPage({
       {/* Contenido principal */}
       <ComercioHeader comercio={comercio} avgRating={avgRating} reviewCount={reviews.length} />
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Columna principal */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6 sm:space-y-8">
             <ServiciosSection servicios={comercio.servicios || []} />
             <ReviewsSection reviews={reviews} avgRating={avgRating} />
           </div>
